@@ -1,0 +1,15 @@
+services:
+  notification-db:
+    ports:
+      - '27018:27017'
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: mongo
+      MONGO_INITDB_ROOT_PASSWORD: mongo123
+    volumes:
+      - notification-db-data:/data/db
+    restart: always
+
+volumes:
+  notification-db-data:
+    name: notification-db-data
+    driver: local

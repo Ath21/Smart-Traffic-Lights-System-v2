@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: traffic-light-coordinator-depl
+  namespace: uniwa-stls
+  labels:
+    app: traffic-light-coordinator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: traffic-light-coordinator
+  template:
+    metadata:
+      labels:
+        app: traffic-light-coordinator
+    spec:
+      # 🟢 --- Main Application Container ---
+      containers:
+        - name: traffic-light-coordinator-container
+          image: ath21/stls-services:traffic-light-coordinator
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+          
+          # Load configuration from ConfigMap + Secret
+          envFrom:
+            - configMapRef:
+                name: traffic-light-coordinator-config
+            - secretRef:
+                name: traffic-light-coordinator-secret
+
+          # --- Probes ---
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 15
+            periodSeconds: 20
+            timeoutSeconds: 3
+            failureThreshold: 3
+
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+
+          # --- Resource Limits ---
+          resources:
+            requests:
+              cpu: 50m   # instead of 100-150m
+              memory: 128Mi
+            limits:
+              cpu: 200m  # instead of 300-400m
+              memory: 256Mi
+
+
+      restartPolicy: Always

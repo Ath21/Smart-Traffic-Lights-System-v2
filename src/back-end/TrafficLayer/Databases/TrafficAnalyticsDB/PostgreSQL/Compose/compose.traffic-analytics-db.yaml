@@ -1,0 +1,12 @@
+services:
+  traffic-analytics-db:
+    image: ath21/stls-databases:traffic-analytics-postgres
+    container_name: traffic-analytics-db-container
+    networks:
+      - traffic-analytics-network
+
+networks:
+  traffic-analytics-network:
+    name: traffic-analytics-network
+    driver: bridge
+    external: true

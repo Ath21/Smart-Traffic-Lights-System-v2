@@ -1,0 +1,12 @@
+services:
+  log-db:
+    image: ath21/stls-databases:log-mongo
+    container_name: log-db-container
+    networks:
+      - log-network
+
+networks:
+  log-network:
+    name: log-network
+    driver: bridge
+    external: true

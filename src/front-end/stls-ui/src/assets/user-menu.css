@@ -1,0 +1,167 @@
+/* User icon button — same height/box as nav buttons */
+.user-btn {
+  box-sizing: border-box;
+  width: 40px;
+  height: 36px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  vertical-align: middle;
+  background: transparent;
+  border: none;
+  margin-left: 10px;
+  transition: transform 0.2s ease, filter 0.2s ease;
+}
+.user-btn:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.1);
+}
+
+/* Circular background around icon */
+.icon-circle {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #cfd8dc, #b0bec5);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.25s ease, box-shadow 0.25s ease;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.25);
+}
+.icon-circle:hover {
+  background: linear-gradient(135deg, #d8e4e8, #e1e8eb);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* User SVG icon */
+.icon-svg {
+  display: block;
+  width: 20px;
+  height: 20px;
+  line-height: 1;
+  color: #0b1d2a;
+}
+
+/* Dropdown menu */
+/* ===============================
+   Dropdown menu (revamped style)
+   =============================== */
+.dropdown {
+  position: absolute;
+  top: 46px;
+  right: 0;
+  min-width: 220px;
+  background: rgba(11, 29, 42, 0.92); /* translucent for depth */
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(0, 180, 255, 0.25);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  z-index: 7100;
+  padding: 0.35rem 0;
+  box-shadow:
+    0 4px 16px rgba(0, 0, 0, 0.45),
+    0 0 8px rgba(0, 180, 255, 0.2);
+  animation: dropdownFadeIn 0.18s ease-out;
+  overflow: hidden;
+}
+
+/* smooth entry animation */
+@keyframes dropdownFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* header area with subtle blue glow line */
+.dropdown-header {
+  padding: 0.65rem 1rem;
+  color: #00b4ff;
+  font-weight: 600;
+  font-size: 0.9rem;
+  background: rgba(0, 180, 255, 0.06);
+  border-bottom: 1px solid rgba(0, 180, 255, 0.25);
+  text-shadow: 0 0 6px rgba(0, 180, 255, 0.3);
+  letter-spacing: 0.4px;
+}
+
+/* menu items — spacing and hover interaction */
+.dropdown-item {
+  padding: 0.6rem 1rem;
+  color: #d8e4ea;
+  cursor: pointer;
+  text-align: left;
+  background: transparent;
+  border: none;
+  transition:
+    background 0.25s ease,
+    color 0.25s ease,
+    padding-left 0.25s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.dropdown-item:hover {
+  background: rgba(0, 180, 255, 0.12);
+  color: #ffffff;
+  padding-left: 1.15rem;
+}
+
+/* separator style (optional between sections) */
+.dropdown-separator {
+  height: 1px;
+  margin: 0.25rem 0;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* logout highlight */
+.dropdown-item.logout {
+  color: #ff5c5c;
+  font-weight: 600;
+}
+.dropdown-item.logout:hover {
+  background: rgba(255, 77, 77, 0.15);
+  color: #ffffff;
+}
+
+/* subtle hover ripple indicator (optional aesthetic touch) */
+.dropdown-item::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  width: 3px;
+  background: #00b4ff;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+.dropdown-item:hover::before {
+  opacity: 1;
+}
+
+/* Notification badge */
+.notification-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #ff4d4d;
+  color: #fff;
+  font-size: 0.7rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #0b1d2a;
+  font-weight: 600;
+}

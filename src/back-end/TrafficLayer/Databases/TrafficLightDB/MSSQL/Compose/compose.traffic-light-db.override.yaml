@@ -1,0 +1,16 @@
+services:
+  traffic-light-db:
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=MyPass@word
+      - MSSQL_PID=Express
+    ports:
+      - "1434:1433"
+    volumes:
+      - traffic-light-db-data:/var/opt/mssql
+    restart: always
+
+volumes:
+  traffic-light-db-data:
+    name: traffic-light-db-data
+    driver: local

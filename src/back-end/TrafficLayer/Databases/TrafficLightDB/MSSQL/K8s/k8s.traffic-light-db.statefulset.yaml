@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: traffic-light-db-state
+  namespace: uniwa-stls
+spec:
+  serviceName: traffic-light-db
+  replicas: 1
+  selector:
+    matchLabels:
+      app: traffic-light-db
+  template:
+    metadata:
+      labels:
+        app: traffic-light-db
+    spec:
+      containers:
+        - name: traffic-light-db-container
+          image: ath21/stls-databases:traffic-light-mssql
+          ports:
+            - containerPort: 1433
+              name: mssql
+          env:
+            - name: ACCEPT_EULA
+              value: "Y"
+            - name: MSSQL_PID
+              value: "Express"
+            - name: MSSQL_SA_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: traffic-light-db-secret
+                  key: MSSQL_SA_PASSWORD
+          volumeMounts:
+            - name: traffic-light-db-data
+              mountPath: /var/opt/mssql
+          resources:
+            requests:
+              cpu: 250m
+              memory: 1024Mi
+            limits:
+              cpu: 750m
+              memory: 2048Mi
+
+          livenessProbe:
+            tcpSocket:
+              port: 1433
+            initialDelaySeconds: 30
+            periodSeconds: 20
+            timeoutSeconds: 5
+            failureThreshold: 5
+
+          readinessProbe:
+            tcpSocket:
+              port: 1433
+            initialDelaySeconds: 15
+            periodSeconds: 10
+
+      restartPolicy: Always
+      volumes:
+        - name: traffic-light-db-data
+          persistentVolumeClaim:
+            claimName: traffic-light-db-pvc

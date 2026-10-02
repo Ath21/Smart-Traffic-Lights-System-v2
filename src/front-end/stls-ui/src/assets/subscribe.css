@@ -1,0 +1,92 @@
+/* ===============================
+   SUBSCRIBE PAGE
+   =============================== */
+.subscribe-page {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 82px 16px;
+  background: #f3f4f6;
+  min-height: 100vh;
+  font-family: Arial, sans-serif; /* added */
+}
+
+.subscribe-card {
+  background: #ffffff;
+  padding: 24px 28px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  width: 100%;
+  max-width: 420px;
+  font-family: Arial, sans-serif; /* added */
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  font-family: Arial, sans-serif; /* added */
+}
+
+label {
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 4px;
+  font-family: Arial, sans-serif; /* added */
+}
+
+select {
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 0.95rem;
+  color: #111827;
+  outline: none;
+  transition: border 0.2s;
+  font-family: Arial, sans-serif; /* added */
+}
+
+select:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+.btn {
+  background: #06b6d4;
+  color: white;
+  font-weight: 600;
+  padding: 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-top: 8px;
+  transition: background 0.2s, transform 0.1s;
+  font-family: Arial, sans-serif; /* added */
+}
+
+.btn:hover {
+  background: #0891b2;
+  transform: translateY(-1px);
+}
+
+.success-msg {
+  color: #059669;
+  font-size: 0.9rem;
+  margin-top: 8px;
+  text-align: center;
+  font-family: Arial, sans-serif; /* added */
+}
+
+.error-msg {
+  color: #b91c1c;
+  font-size: 0.9rem;
+  margin-top: 8px;
+  text-align: center;
+  font-family: Arial, sans-serif; /* added */
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .subscribe-card {
+    padding: 16px;
+  }
+}

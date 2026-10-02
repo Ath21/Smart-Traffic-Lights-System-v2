@@ -1,0 +1,22 @@
+services:
+  traffic-analytics:
+    image: ath21/stls-services:traffic-analytics
+    container_name: traffic-analytics-container
+    networks:
+      - traffic-analytics-network
+      - detection-network
+      - rabbitmq-network
+
+networks:
+  traffic-analytics-network:
+    name: traffic-analytics-network
+    driver: bridge
+    external: true
+  detection-network:
+    name: detection-network
+    driver: bridge
+    external: true
+  rabbitmq-network:
+    name: rabbitmq-network
+    driver: bridge
+    external: true

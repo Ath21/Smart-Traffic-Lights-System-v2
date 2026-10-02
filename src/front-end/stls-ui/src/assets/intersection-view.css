@@ -1,0 +1,247 @@
+/* Container */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 55px;
+  font-family: Arial, sans-serif;
+  background-color: #f3f4f6;
+}
+
+/* Header */
+.header h1 {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #000000;
+  margin-bottom: 5px;
+}
+
+.location {
+  color: #4b5563;
+  margin-bottom: 3px;
+}
+
+.coordinates {
+  color: #6b7280;
+  font-size: 0.9rem;
+}
+
+/* Loading & Error */
+.loading {
+  color: #4b5563;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.error {
+  color: #dc2626;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+/* Grid */
+.grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+}
+
+@media (min-width: 600px) {
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 900px) {
+  .grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Card */
+.card {
+  background-color: white;
+  padding: 15px;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  transition: box-shadow 0.2s ease;
+}
+
+.card:hover {
+  box-shadow: 0 10px 15px rgba(0,0,0,0.1);
+}
+
+/* Light name */
+.light-name {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 5px;
+}
+
+.direction {
+  color: #6b7280;
+  font-size: 0.9rem;
+}
+
+/* Info text */
+.info {
+  font-size: 0.9rem;
+  color: #6b7280;
+  margin-bottom: 3px;
+}
+
+/* Status colors */
+.green-text { color: #16a34a; font-weight: bold; }
+.red-text { color: #dc2626; font-weight: bold; }
+
+/* Phase circle */
+.phase span {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  margin-right: 5px;
+}
+
+/* Colors for phases */
+.green-circle { background-color: #16a34a; }
+.yellow-circle { background-color: #facc15; }
+.red-circle { background-color: #dc2626; }
+
+/* Blinking animation */
+@keyframes pulse-light {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.blink {
+  animation: pulse-light 1s infinite;
+}
+
+.light-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.light-img {
+  width: 300px;
+  height: 100px;
+  object-fit: contain;
+  border-radius: 6px;
+  border: 1px solid #d1d5db; /* light gray border */
+}
+
+/* Configuration info under card */
+/* Configuration Info Card */
+/* Lights config container */
+.lights-config {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-top: 15px;
+}
+
+/* Each light's config card */
+.light-config-card {
+  background-color: #f9fafb;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+}
+
+/* Phase bar container */
+.phase-bar {
+  display: flex;
+  height: 25px;
+  border-radius: 6px;
+  overflow: hidden;
+  margin-top: 5px;
+  font-size: 0.8rem;
+  color: white;
+  font-weight: bold;
+}
+
+/* Each phase segment */
+.phase-segment {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  height: 100%;
+}
+
+
+/* Operator/Admin Controls */
+.light-operator-controls {
+  margin-top: 10px;
+  padding: 10px;
+  background-color: #f3f4f6;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.light-operator-controls label {
+  font-weight: 600;
+  font-size: 0.9rem;
+  margin-bottom: 5px;
+}
+
+.light-operator-controls select {
+  padding: 5px 8px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 0.9rem;
+}
+
+.light-operator-controls button {
+  background-color: #2563eb; /* blue */
+  color: white;
+  padding: 5px 10px;
+  font-size: 0.9rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.light-operator-controls button:hover {
+  background-color: #1d4ed8;
+}
+
+/* Global Apply Mode Section */
+.apply-mode {
+  margin-top: 20px;
+  padding: 15px;
+  background-color: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.apply-mode select {
+  padding: 5px 8px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 0.9rem;
+}
+
+.apply-mode button {
+  background-color: #16a34a; /* green */
+  color: white;
+  padding: 5px 10px;
+  font-size: 0.9rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.apply-mode button:hover {
+  background-color: #15803d;
+}

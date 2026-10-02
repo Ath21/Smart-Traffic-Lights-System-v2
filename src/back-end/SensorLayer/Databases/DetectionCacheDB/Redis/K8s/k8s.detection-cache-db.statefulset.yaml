@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: detection-cache-db-state
+  namespace: uniwa-stls
+spec:
+  serviceName: detection-cache-db
+  replicas: 1
+  selector:
+    matchLabels:
+      app: detection-cache-db
+  template:
+    metadata:
+      labels:
+        app: detection-cache-db
+    spec:
+      containers:
+        - name: detection-cache-db-container
+          image: ath21/stls-databases:detection-redis
+          ports:
+            - containerPort: 6379
+              name: redis
+          command: ["redis-server", "--appendonly", "yes"]
+          volumeMounts:
+            - name: detection-cache-db-data
+              mountPath: /data
+          
+          resources:
+            requests:
+              cpu: 50m   # instead of 100-150m
+              memory: 128Mi
+            limits:
+              cpu: 200m  # instead of 300-400m
+              memory: 256Mi
+
+          livenessProbe:
+            tcpSocket:
+              port: 6379
+            initialDelaySeconds: 20
+            periodSeconds: 15
+            timeoutSeconds: 5
+            failureThreshold: 5
+          readinessProbe:
+            tcpSocket:
+              port: 6379
+            initialDelaySeconds: 10
+            periodSeconds: 10
+      restartPolicy: Always
+      volumes:
+        - name: detection-cache-db-data
+          persistentVolumeClaim:
+            claimName: detection-cache-db-pvc

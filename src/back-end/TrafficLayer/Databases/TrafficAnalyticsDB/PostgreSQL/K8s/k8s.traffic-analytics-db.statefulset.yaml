@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: traffic-analytics-db-state
+  namespace: uniwa-stls
+spec:
+  serviceName: traffic-analytics-db
+  replicas: 1
+  selector:
+    matchLabels:
+      app: traffic-analytics-db
+  template:
+    metadata:
+      labels:
+        app: traffic-analytics-db
+    spec:
+      containers:
+        - name: traffic-analytics-db-container
+          image: ath21/stls-databases:traffic-analytics-postgres
+          ports:
+            - containerPort: 5432
+              name: postgres
+          envFrom:
+            - secretRef:
+                name: traffic-analytics-db-secret
+          volumeMounts:
+            - name: traffic-analytics-db-data
+              mountPath: /var/lib/postgresql/data
+
+          resources:
+            requests:
+              cpu: 150m   # instead of 100-150m
+              memory: 512Mi
+            limits:
+              cpu: 500m  # instead of 300-400m
+              memory: 1Gi
+
+          livenessProbe:
+            tcpSocket:
+              port: 5432
+            initialDelaySeconds: 20
+            periodSeconds: 15
+            timeoutSeconds: 5
+            failureThreshold: 5
+          readinessProbe:
+            tcpSocket:
+              port: 5432
+            initialDelaySeconds: 10
+            periodSeconds: 10
+      restartPolicy: Always
+      volumes:
+        - name: traffic-analytics-db-data
+          persistentVolumeClaim:
+            claimName: traffic-analytics-db-pvc

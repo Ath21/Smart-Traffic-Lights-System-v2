@@ -1,0 +1,82 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: detection-api-kentriki-pyli-depl
+  namespace: uniwa-stls
+  labels:
+    app: detection-api-kentriki-pyli
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: detection-api-kentriki-pyli
+  template:
+    metadata:
+      labels:
+        app: detection-api-kentriki-pyli
+    spec:
+      # === MAIN CONTAINER ===
+      containers:
+        - name: detection-api-kentriki-pyli-container
+          image: ath21/stls-services:detection-api
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+
+          # --- Load from ConfigMap and Secret ---
+          envFrom:
+            - configMapRef:
+                name: detection-api-config
+            - secretRef:
+                name: detection-api-secret
+
+          # --- Dynamic Intersection Info ---
+          env:
+            - name: Intersection__Id
+              value: "5"
+            - name: Intersection__Name
+              value: "Kentriki Pyli"
+
+          # --- Probes ---
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 15
+            timeoutSeconds: 3
+            failureThreshold: 3
+
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 8080
+            initialDelaySeconds: 15
+            periodSeconds: 20
+            timeoutSeconds: 5
+            failureThreshold: 3
+
+          # --- Resource Limits ---
+          resources:
+            requests:
+              cpu: 50m   # instead of 100-150m
+              memory: 128Mi
+            limits:
+              cpu: 200m  # instead of 300-400m
+              memory: 256Mi
+
+      restartPolicy: Always
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: detection-api-kentriki-pyli-svc
+  namespace: uniwa-stls
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8080
+      targetPort: 8080
+  selector:
+    app: detection-api-kentriki-pyli

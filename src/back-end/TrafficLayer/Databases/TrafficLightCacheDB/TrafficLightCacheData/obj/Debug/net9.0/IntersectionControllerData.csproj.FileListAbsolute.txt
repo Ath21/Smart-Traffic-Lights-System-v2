@@ -1,0 +1,13 @@
+/home/ath/Smart-Traffic-Lights-System/src/back-end/TrafficLayer/IntersectionControllerService/IntersectionControllerAPI/IntersectionControllerData/bin/Debug/net9.0/IntersectionControllerData.deps.json
+/home/ath/Smart-Traffic-Lights-System/src/back-end/TrafficLayer/IntersectionControllerService/IntersectionControllerAPI/IntersectionControllerData/bin/Debug/net9.0/IntersectionControllerData.dll
+/home/ath/Smart-Traffic-Lights-System/src/back-end/TrafficLayer/IntersectionControllerService/IntersectionControllerAPI/IntersectionControllerData/bin/Debug/net9.0/IntersectionControllerData.pdb
+/home/ath/Smart-Traffic-Lights-System/src/back-end/TrafficLayer/IntersectionControllerService/IntersectionControllerAPI/IntersectionControllerData/obj/Debug/net9.0/IntersectionControllerData.csproj.AssemblyReference.cache
+/home/ath/Smart-Traffic-Lights-System/src/back-end/TrafficLayer/IntersectionControllerService/IntersectionControllerAPI/IntersectionControllerData/obj/Debug/net9.0/IntersectionControllerData.GeneratedMSBuildEditorConfig.editorconfig
+/home/ath/Smart-Traffic-Lights-System/src/back-end/TrafficLayer/IntersectionControllerService/IntersectionControllerAPI/IntersectionControllerData/obj/Debug/net9.0/IntersectionControllerData.AssemblyInfoInputs.cache
+/home/ath/Smart-Traffic-Lights-System/src/back-end/TrafficLayer/IntersectionControllerService/IntersectionControllerAPI/IntersectionControllerData/obj/Debug/net9.0/IntersectionControllerData.AssemblyInfo.cs
+/home/ath/Smart-Traffic-Lights-System/src/back-end/TrafficLayer/IntersectionControllerService/IntersectionControllerAPI/IntersectionControllerData/obj/Debug/net9.0/IntersectionControllerData.csproj.CoreCompileInputs.cache
+/home/ath/Smart-Traffic-Lights-System/src/back-end/TrafficLayer/IntersectionControllerService/IntersectionControllerAPI/IntersectionControllerData/obj/Debug/net9.0/IntersectionControllerData.sourcelink.json
+/home/ath/Smart-Traffic-Lights-System/src/back-end/TrafficLayer/IntersectionControllerService/IntersectionControllerAPI/IntersectionControllerData/obj/Debug/net9.0/IntersectionControllerData.dll
+/home/ath/Smart-Traffic-Lights-System/src/back-end/TrafficLayer/IntersectionControllerService/IntersectionControllerAPI/IntersectionControllerData/obj/Debug/net9.0/refint/IntersectionControllerData.dll
+/home/ath/Smart-Traffic-Lights-System/src/back-end/TrafficLayer/IntersectionControllerService/IntersectionControllerAPI/IntersectionControllerData/obj/Debug/net9.0/IntersectionControllerData.pdb
+/home/ath/Smart-Traffic-Lights-System/src/back-end/TrafficLayer/IntersectionControllerService/IntersectionControllerAPI/IntersectionControllerData/obj/Debug/net9.0/ref/IntersectionControllerData.dll

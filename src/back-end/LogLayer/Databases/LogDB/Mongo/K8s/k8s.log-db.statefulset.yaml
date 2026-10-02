@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: log-db-state
+  namespace: uniwa-stls
+spec:
+  serviceName: log-db
+  replicas: 1
+  selector:
+    matchLabels:
+      app: log-db
+  template:
+    metadata:
+      labels:
+        app: log-db
+    spec:
+      containers:
+        - name: log-db-container
+          image: ath21/stls-databases:log-mongo
+          ports:
+            - containerPort: 27017
+              name: mongo
+          envFrom:
+            - secretRef:
+                name: log-db-secret
+          volumeMounts:
+            - name: log-db-data
+              mountPath: /data/db
+          
+          resources:
+            requests:
+              cpu: 100m   # instead of 100-150m
+              memory: 512Mi
+            limits:
+              cpu: 400m  # instead of 300-400m
+              memory: 1Gi
+          
+          livenessProbe:
+            tcpSocket:
+              port: 27017
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 5
+          readinessProbe:
+            tcpSocket:
+              port: 27017
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+      restartPolicy: Always
+      volumes:
+        - name: log-db-data
+          persistentVolumeClaim:
+            claimName: log-db-pvc

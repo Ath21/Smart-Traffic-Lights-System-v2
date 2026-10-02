@@ -1,0 +1,15 @@
+/home/ath/Smart-Traffic-Lights-System/src/back-end/TrafficLayer/TrafficDataAnalyticsService/TrafficDataAnalyticsAPI/TrafficDataAnalyticsData/bin/Debug/net9.0/TrafficDataAnalyticsData.deps.json
+/home/ath/Smart-Traffic-Lights-System/src/back-end/TrafficLayer/TrafficDataAnalyticsService/TrafficDataAnalyticsAPI/TrafficDataAnalyticsData/bin/Debug/net9.0/TrafficDataAnalyticsData.dll
+/home/ath/Smart-Traffic-Lights-System/src/back-end/TrafficLayer/TrafficDataAnalyticsService/TrafficDataAnalyticsAPI/TrafficDataAnalyticsData/bin/Debug/net9.0/TrafficDataAnalyticsData.pdb
+/home/ath/Smart-Traffic-Lights-System/src/back-end/TrafficLayer/TrafficDataAnalyticsService/TrafficDataAnalyticsAPI/TrafficDataAnalyticsData/obj/Debug/net9.0/TrafficDataAnalyticsData.GeneratedMSBuildEditorConfig.editorconfig
+/home/ath/Smart-Traffic-Lights-System/src/back-end/TrafficLayer/TrafficDataAnalyticsService/TrafficDataAnalyticsAPI/TrafficDataAnalyticsData/obj/Debug/net9.0/TrafficDataAnalyticsData.AssemblyInfoInputs.cache
+/home/ath/Smart-Traffic-Lights-System/src/back-end/TrafficLayer/TrafficDataAnalyticsService/TrafficDataAnalyticsAPI/TrafficDataAnalyticsData/obj/Debug/net9.0/TrafficDataAnalyticsData.AssemblyInfo.cs
+/home/ath/Smart-Traffic-Lights-System/src/back-end/TrafficLayer/TrafficDataAnalyticsService/TrafficDataAnalyticsAPI/TrafficDataAnalyticsData/obj/Debug/net9.0/TrafficDataAnalyticsData.csproj.CoreCompileInputs.cache
+/home/ath/Smart-Traffic-Lights-System/src/back-end/TrafficLayer/TrafficDataAnalyticsService/TrafficDataAnalyticsAPI/TrafficDataAnalyticsData/obj/Debug/net9.0/TrafficDataAnalyticsData.sourcelink.json
+/home/ath/Smart-Traffic-Lights-System/src/back-end/TrafficLayer/TrafficDataAnalyticsService/TrafficDataAnalyticsAPI/TrafficDataAnalyticsData/obj/Debug/net9.0/TrafficDataAnalyticsData.dll
+/home/ath/Smart-Traffic-Lights-System/src/back-end/TrafficLayer/TrafficDataAnalyticsService/TrafficDataAnalyticsAPI/TrafficDataAnalyticsData/obj/Debug/net9.0/refint/TrafficDataAnalyticsData.dll
+/home/ath/Smart-Traffic-Lights-System/src/back-end/TrafficLayer/TrafficDataAnalyticsService/TrafficDataAnalyticsAPI/TrafficDataAnalyticsData/obj/Debug/net9.0/TrafficDataAnalyticsData.pdb
+/home/ath/Smart-Traffic-Lights-System/src/back-end/TrafficLayer/TrafficDataAnalyticsService/TrafficDataAnalyticsAPI/TrafficDataAnalyticsData/obj/Debug/net9.0/ref/TrafficDataAnalyticsData.dll
+/home/ath/Smart-Traffic-Lights-System/src/back-end/TrafficLayer/TrafficDataAnalyticsService/TrafficDataAnalyticsAPI/TrafficDataAnalyticsData/obj/Debug/net9.0/TrafficDataAnalyticsData.csproj.AssemblyReference.cache
+/home/ath/Smart-Traffic-Lights-System/src/back-end/TrafficLayer/TrafficDataAnalyticsService/TrafficDataAnalyticsAPI/TrafficDataAnalyticsData/bin/Debug/net9.0/TrafficDataAnalyticsData.runtimeconfig.json
+/home/ath/Smart-Traffic-Lights-System/src/back-end/TrafficLayer/TrafficDataAnalyticsService/TrafficDataAnalyticsAPI/TrafficDataAnalyticsData/obj/Debug/net9.0/TrafficDataAnalyticsData.genruntimeconfig.cache

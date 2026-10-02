@@ -1,0 +1,18 @@
+services:
+  detection-cache-db:
+    ports:
+      - '6380:6379'
+    command: ["redis-server", "--appendonly", "yes"]
+    restart: always
+    volumes:
+      - detection-cache-db-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  detection-cache-db-data:
+    name: detection-cache-db-data
+    driver: local

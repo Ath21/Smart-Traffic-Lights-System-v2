@@ -1,0 +1,47 @@
+# Build artifacts
+**/bin/
+**/obj/
+
+# IDE / tooling
+**/.vs/
+**/.vscode/
+**/.idea/
+*.suo
+*.user
+*.csproj.user
+
+# Git / version control
+.git/
+.gitignore
+
+# Cache and temp
+**/.cache/
+**/.DS_Store
+*.log
+*.tmp
+
+# Docker files
+Dockerfile*
+docker-compose.*
+
+# Environment / secrets
+.env
+secrets.json
+appsettings.Development.json
+appsettings.Local.json
+
+# Database files
+*.db
+*.mdf
+*.ldf
+
+# Test projects and results
+**/TestResults/
+**/*.Tests/
+coverage*.json
+coverage*.xml
+coverage*.info
+
+# Documentation
+*.md
+*.pdf

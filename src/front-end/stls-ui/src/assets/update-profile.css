@@ -1,0 +1,76 @@
+/* ===============================
+   UPDATE PROFILE PAGE (NO TITLE)
+   =============================== */
+.update-profile-page {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;  /* push card slightly from top */
+  padding: 92px 16px;       /* vertical padding */
+  background: #f3f4f6;
+  min-height: 100vh;
+  font-family: Arial, sans-serif; /* added */
+}
+
+.update-card {
+  background: #ffffff;
+  padding: 20px 24px;       /* tight padding */
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  width: 100%;
+  max-width: 420px;
+  font-family: Arial, sans-serif; /* added */
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  font-family: Arial, sans-serif; /* added */
+}
+
+.input {
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 0.95rem;
+  color: #111827;
+  outline: none;
+  transition: border 0.2s;
+  font-family: Arial, sans-serif; /* added */
+}
+
+.input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+.btn {
+  background: #06b6d4;
+  color: white;
+  font-weight: 600;
+  padding: 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+  font-family: Arial, sans-serif; /* added */
+}
+
+.btn:hover {
+  background: #0891b2;
+  transform: translateY(-1px);
+}
+
+.error-msg {
+  color: #b91c1c;
+  font-size: 0.9rem;
+  margin-top: -2px;
+  font-family: Arial, sans-serif; /* added */
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .update-card {
+    padding: 16px;
+    width: 100%;
+  }
+}

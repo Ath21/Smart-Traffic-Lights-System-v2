@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-api-depl
+  namespace: uniwa-stls
+  labels:
+    app: user-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: user-api
+  template:
+    metadata:
+      labels:
+        app: user-api
+    spec:
+      # 🟢 --- Main Container ---
+      containers:
+        - name: user-api-container
+          image: ath21/stls-services:user-api
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+          
+          # Load configuration from ConfigMap + Secret
+          envFrom:
+            - configMapRef:
+                name: user-api-config
+            - secretRef:
+                name: user-api-secret
+
+          # --- Probes ---
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 15
+            periodSeconds: 20
+            timeoutSeconds: 3
+            failureThreshold: 3
+
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+
+          # --- Resource Limits ---
+          resources:
+            requests:
+              cpu: 50m   # instead of 100-150m
+              memory: 128Mi
+            limits:
+              cpu: 200m  # instead of 300-400m
+              memory: 256Mi
+
+      restartPolicy: Always

@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: traffic-light-cache-db-state
+  namespace: uniwa-stls
+spec:
+  serviceName: traffic-light-cache-db
+  replicas: 1
+  selector:
+    matchLabels:
+      app: traffic-light-cache-db
+  template:
+    metadata:
+      labels:
+        app: traffic-light-cache-db
+    spec:
+      containers:
+        - name: traffic-light-cache-db-container
+          image: ath21/stls-databases:traffic-light-redis
+          ports:
+            - containerPort: 6379
+              name: redis
+          command: ["redis-server", "--appendonly", "yes", "--requirepass", "$(REDIS_PASSWORD)"]
+          volumeMounts:
+            - name: traffic-light-cache-db-data
+              mountPath: /data
+
+          resources:
+            requests:
+              cpu: 50m   # instead of 100-150m
+              memory: 128Mi
+            limits:
+              cpu: 200m  # instead of 300-400m
+              memory: 256Mi
+              
+          livenessProbe:
+            tcpSocket:
+              port: 6379
+            initialDelaySeconds: 20
+            periodSeconds: 15
+            timeoutSeconds: 5
+            failureThreshold: 5
+
+          readinessProbe:
+            tcpSocket:
+              port: 6379
+            initialDelaySeconds: 10
+            periodSeconds: 10
+
+      restartPolicy: Always
+      volumes:
+        - name: traffic-light-cache-db-data
+          persistentVolumeClaim:
+            claimName: traffic-light-cache-db-pvc

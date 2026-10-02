@@ -1,0 +1,127 @@
+/* src/assets/css/logDashboard.css */
+
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f4f6f8;
+}
+
+.dashboard-container {
+  padding: 50px;
+}
+
+h1 {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 20px;
+  color: #f4f6f8;
+}
+
+/* Filters */
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.filters input,
+.filters select {
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  outline: none;
+  font-size: 14px;
+}
+
+.filters input:focus,
+.filters select:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 3px rgba(0, 123, 255, 0.5);
+}
+
+.filters button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 5px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.btn-primary {
+  background-color: #007bff;
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: #0056b3;
+}
+
+.btn-secondary {
+  background-color: #6c757d;
+  color: white;
+}
+
+.btn-secondary:hover {
+  background-color: #5a6268;
+}
+
+.btn-export {
+  background-color: #28a745;
+  color: white;
+}
+
+.btn-export:hover {
+  background-color: #1e7e34;
+}
+
+/* Table */
+.table-container {
+  overflow-x: auto;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 0 5px rgba(0,0,0,0.1);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+thead {
+  background-color: #f1f3f5;
+}
+
+thead th {
+  text-align: left;
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
+  color: #555;
+}
+
+tbody td {
+  padding: 10px;
+  border-bottom: 1px solid #eee;
+  color: #333;
+}
+
+tbody tr:hover {
+  background-color: #f9f9f9;
+}
+
+/* Error and loading messages */
+.error {
+  color: #dc3545;
+  margin-bottom: 10px;
+}
+
+.loading {
+  color: #555;
+  margin-bottom: 10px;
+}
+
+.no-logs {
+  color: #555;
+  margin-top: 10px;
+}

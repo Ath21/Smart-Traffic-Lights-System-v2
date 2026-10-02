@@ -1,0 +1,16 @@
+services:
+  user-db:
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=MyPass@word
+      - MSSQL_PID=Express
+    ports:
+      - "1433:1433"
+    volumes:
+      - user-db-data:/var/opt/mssql
+    restart: always
+
+volumes:
+  user-db-data:
+    name: user-db-data
+    driver: local

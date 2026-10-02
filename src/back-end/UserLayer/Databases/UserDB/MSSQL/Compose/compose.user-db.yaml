@@ -1,0 +1,12 @@
+services:  
+  user-db:
+    image: ath21/stls-databases:user-mssql
+    container_name: user-db-container
+    networks:
+      - user-network
+
+networks:
+  user-network:
+    name: user-network
+    driver: bridge
+    external: true

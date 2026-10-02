@@ -1,0 +1,88 @@
+services:
+  traffic-light-controller-agiou-spyridonos502:
+    image: ath21/stls-services:traffic-light-controller
+    container_name: traffic-light-controller-agiou-spyridonos502-container
+    ports:
+      - '5271:8080'
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+      SERVICE_LAYER: Traffic
+      SERVICE_LEVEL: Edge
+      SERVICE_NAME: Traffic Light Controller
+
+      # Intersection Details
+      Intersection__Id: 5
+      Intersection__Name: Kentriki Pyli
+
+      # Traffic Light Details
+      TrafficLight__Id: 502
+      TrafficLight__Name: Agiou Spyridonos
+
+      # TrafficLightCacheDB (Redis)
+      Redis__TrafficLight__Host: traffic-light-cache-db
+      Redis__TrafficLight__Port: 6379
+      Redis__TrafficLight__Password: ""
+      Redis__TrafficLight__Database: 0
+      Redis__TrafficLight__KeyPrefix__State: traffic_light:{intersection}:{light}:state
+      Redis__TrafficLight__KeyPrefix__CurrentPhase: traffic_light:{intersection}:{light}:phase
+      Redis__TrafficLight__KeyPrefix__RemainingTime: traffic_light:{intersection}:{light}:remaining
+      Redis__TrafficLight__KeyPrefix__Duration: traffic_light:{intersection}:{light}:duration
+      Redis__TrafficLight__KeyPrefix__LastUpdate: traffic_light:{intersection}:{light}:last_update
+      Redis__TrafficLight__KeyPrefix__CycleDuration: traffic_light:{intersection}:{light}:cycle_duration
+      Redis__TrafficLight__KeyPrefix__Offset: traffic_light:{intersection}:{light}:offset
+      Redis__TrafficLight__KeyPrefix__LocalOffset: traffic_light:{intersection}:{light}:local_offset
+      Redis__TrafficLight__KeyPrefix__CycleProgress: traffic_light:{intersection}:{light}:cycle_progress
+      Redis__TrafficLight__KeyPrefix__Mode: traffic_light:{intersection}:{light}:mode
+      Redis__TrafficLight__KeyPrefix__Priority: traffic_light:{intersection}:{light}:priority
+      Redis__TrafficLight__KeyPrefix__CachedPhases: traffic_light:{intersection}:{light}:cached_phases
+      Redis__TrafficLight__KeyPrefix__FailoverActive: traffic_light:{intersection}:{light}:failover
+      Redis__TrafficLight__KeyPrefix__LastCoordinatorSync: traffic_light:{intersection}:last_sync
+      Redis__TrafficLight__KeyPrefix__Heartbeat: traffic_light:{intersection}:{light}:heartbeat
+
+      # CORS
+      Cors__AllowedOrigins: http://localhost:5173,https://uniwa-stls.local
+      Cors__AllowedMethods: GET,POST,PUT,PATCH,DELETE,OPTIONS
+      Cors__AllowedHeaders: Content-Type,Authorization
+
+      # JWT
+      Jwt__Issuer: http://uniwa-stls-backend:8080
+      Jwt__Audience: http://uniwa-stls-backend:8080
+      Jwt__Key: Nn7kLa8Rzv1XHt9UwMqP4YbFdJxVt2Km
+
+      # RabbitMQ
+      ## Configuration
+      RabbitMQ__Host: rabbitmq
+      RabbitMQ__VirtualHost: /
+      RabbitMQ__Port: 5672
+      RabbitMQ__Username: rabbitmq
+      RabbitMQ__Password: rabbitmq123
+
+      ## Exchanges
+      RabbitMQ__Exchanges__Traffic: TRAFFIC.EXCHANGE
+      RabbitMQ__Exchanges__Log: LOG.EXCHANGE
+
+      ## Queues
+      RabbitMQ__Queues__Traffic__LightControl: intersection-controller-2-traffic-light-controller.{intersection}.{light}.queue
+
+      ## Routing Keys
+      ### Consume
+      RabbitMQ__RoutingKeys__Traffic__LightControl: traffic.light.control.#
+      ### Publish
+      RabbitMQ__RoutingKeys__Log__LightController: log.{layer}.{service}.{type}
+
+    restart: always
+
+    networks:
+      - traffic-light-cache-network
+      - rabbitmq-network
+
+networks:
+  traffic-light-cache-network:
+    name: traffic-light-cache-network
+    driver: bridge
+    external: true
+  rabbitmq-network:
+    name: rabbitmq-network
+    driver: bridge
+    external: true

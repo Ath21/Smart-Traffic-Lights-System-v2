@@ -1,0 +1,12 @@
+services:
+  detection-cache-db:
+    image: ath21/stls-databases:detection-redis
+    container_name: detection-cache-db-container
+    networks:
+      - detection-cache-network
+
+networks:
+  detection-cache-network:
+    name: detection-cache-network
+    driver: bridge
+    external: true

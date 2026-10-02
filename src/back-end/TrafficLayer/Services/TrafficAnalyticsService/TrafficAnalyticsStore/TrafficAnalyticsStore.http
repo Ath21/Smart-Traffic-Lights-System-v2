@@ -1,0 +1,6 @@
+@TrafficAnalyticsStore_HostAddress = http://localhost:5208
+
+GET {{TrafficAnalyticsStore_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

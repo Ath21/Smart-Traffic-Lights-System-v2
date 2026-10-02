@@ -1,0 +1,22 @@
+services:
+  traffic-light-coordinator:
+    image: ath21/stls-services:traffic-light-coordinator
+    container_name: traffic-light-coordinator-container
+    networks:
+      - traffic-light-cache-network
+      - traffic-light-network
+      - rabbitmq-network
+
+networks:
+  traffic-light-cache-network:
+    name: traffic-light-cache-network
+    driver: bridge
+    external: true
+  traffic-light-network:
+    name: traffic-light-network
+    driver: bridge
+    external: true
+  rabbitmq-network:
+    name: rabbitmq-network
+    driver: bridge
+    external: true

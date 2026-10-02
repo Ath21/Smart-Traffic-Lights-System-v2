@@ -1,0 +1,17 @@
+services:
+  user-api:
+    image: ath21/stls-services:user-api
+    container_name: user-api-container
+    networks:
+      - user-network
+      - rabbitmq-network
+
+networks:
+  user-network:
+    name: user-network
+    driver: bridge
+    external: true
+  rabbitmq-network:
+    name: rabbitmq-network
+    driver: bridge
+    external: true

@@ -1,0 +1,6 @@
+@IntersectionControllerStore_HostAddress = http://localhost:5190
+
+GET {{IntersectionControllerStore_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

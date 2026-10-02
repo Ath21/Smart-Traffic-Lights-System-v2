@@ -1,0 +1,17 @@
+services:
+  notification-api:
+    image: ath21/stls-services:notification-api
+    container_name: notification-api-container
+    networks:
+      - notification-network
+      - rabbitmq-network
+
+networks:
+  notification-network:
+    name: notification-network
+    driver: bridge
+    external: true
+  rabbitmq-network:
+    name: rabbitmq-network
+    driver: bridge
+    external: true

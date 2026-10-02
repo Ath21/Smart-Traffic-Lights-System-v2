@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: traffic-analytics-depl
+  namespace: uniwa-stls
+  labels:
+    app: traffic-analytics
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: traffic-analytics
+  template:
+    metadata:
+      labels:
+        app: traffic-analytics
+    spec:
+      # === MAIN CONTAINER ===
+      containers:
+        - name: traffic-analytics-container
+          image: ath21/stls-services:traffic-analytics
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+          
+          # --- Load configuration ---
+          envFrom:
+            - configMapRef:
+                name: traffic-analytics-config
+            - secretRef:
+                name: traffic-analytics-secret
+
+          # --- Probes ---
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 15
+            periodSeconds: 20
+            timeoutSeconds: 3
+            failureThreshold: 3
+
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+
+          # --- Resources ---
+          resources:
+            requests:
+              cpu: 50m   # instead of 100-150m
+              memory: 128Mi
+            limits:
+              cpu: 200m  # instead of 300-400m
+              memory: 256Mi
+
+      restartPolicy: Always

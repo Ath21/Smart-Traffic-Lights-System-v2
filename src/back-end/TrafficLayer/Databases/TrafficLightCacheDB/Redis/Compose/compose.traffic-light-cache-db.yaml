@@ -1,0 +1,12 @@
+services:
+  traffic-light-cache-db:
+    image: ath21/stls-databases:traffic-light-redis
+    container_name: traffic-light-cache-db-container
+    networks:
+      - traffic-light-cache-network
+
+networks: 
+  traffic-light-cache-network:
+    name: traffic-light-cache-network
+    driver: bridge
+    external: true

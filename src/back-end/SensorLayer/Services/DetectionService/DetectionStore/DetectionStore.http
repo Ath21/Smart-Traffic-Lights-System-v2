@@ -1,0 +1,6 @@
+@DetectionStore_HostAddress = http://localhost:5122
+
+GET {{DetectionStore_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

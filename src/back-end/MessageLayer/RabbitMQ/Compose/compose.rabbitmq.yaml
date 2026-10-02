@@ -1,0 +1,12 @@
+services:
+  rabbitmq:
+    image: ath21/stls-broker:rabbitmq
+    container_name: rabbitmq-container
+    networks:
+      - rabbitmq-network
+  
+networks:
+  rabbitmq-network:
+    name: rabbitmq-network
+    driver: bridge
+    external: true

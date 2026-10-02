@@ -1,0 +1,18 @@
+services:
+  traffic-light-cache-db:
+    ports:
+      - '6379:6379'
+    command: ["redis-server", "--appendonly", "yes"]
+    restart: always
+    volumes:
+      - traffic-light-cache-db-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  traffic-light-cache-db-data:
+    name: traffic-light-cache-db-data
+    driver: local

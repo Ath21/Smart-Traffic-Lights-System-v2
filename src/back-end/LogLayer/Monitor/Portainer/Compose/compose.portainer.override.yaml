@@ -1,0 +1,23 @@
+services: 
+  portainer:
+    ports:
+      - '9443:9443'
+    restart: always
+    volumes:
+      - portainer-data:/data
+      - /var/run/docker.sock:/var/run/docker.sock
+    deploy:
+      resources:
+        limits:
+          cpus: '0.10'
+          memory: 50M
+        reservations:
+          cpus: '0.05'
+          memory: 50M         
+    networks:
+      - log-network
+
+volumes:
+  portainer-data:
+    name: portainer-data
+    driver: local

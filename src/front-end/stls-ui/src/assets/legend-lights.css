@@ -1,0 +1,85 @@
+/* ===============================
+   Legend Box
+   =============================== */
+.legend-box {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  background: rgba(18, 43, 61, 0.9);
+  border: 1px solid rgba(0, 180, 255, 0.25);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  font-size: 0.95rem;
+  color: #f8f9fa;
+  font-family: Arial, sans-serif; /* added */
+  z-index: 7000;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+}
+
+/* Ensure legend text always visible */
+.legend-box div {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #f8f9fa;
+  font-weight: 500;
+  font-family: Arial, sans-serif; /* added */
+}
+
+/* ===============================
+   Traffic Lights in Legend
+   =============================== */
+.traffic-light {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  display: inline-block;
+  border: 1px solid rgba(255,255,255,0.2);
+  font-family: Arial, sans-serif; /* optional, only if text inside */
+}
+
+.traffic-light.red {
+  background-color: #ff4d4d;
+}
+
+.traffic-light.yellow {
+  background-color: #ffeb3b;
+}
+
+.traffic-light.green {
+  background-color: #4caf50;
+}
+
+.traffic-light.orange {
+  background-color: #ff9800; /* orange */
+}
+
+/* ===============================
+   Intersection Congestion Icons
+   =============================== */
+.legend-icon {
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
+  display: inline-block;
+  border: 1px solid rgba(255,255,255,0.2);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.5);
+  font-family: Arial, sans-serif; /* optional, only if text inside */
+}
+
+.legend-icon.low {
+  background-color: rgba(51, 153, 255, 0.85); /* blue */
+}
+
+.legend-icon.medium {
+  background-color: rgba(255, 165, 0, 0.85); /* orange */
+}
+
+.legend-icon.high {
+  background-color: rgba(255, 77, 77, 0.85); /* red */
+  box-shadow: 0 0 8px rgba(255, 77, 77, 0.6);
+  animation: pulseGlow 2s infinite ease-in-out;
+}

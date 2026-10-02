@@ -1,0 +1,49 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: traffic-light-coordinator-config
+  namespace: uniwa-stls
+data:
+  # ASP.NET Core
+  ASPNETCORE_ENVIRONMENT: Development
+  ASPNETCORE_URLS: "http://+:8080"
+  SERVICE_LAYER: "Traffic"
+  SERVICE_LEVEL: "Cloud"
+  SERVICE_NAME: "Traffic Light Coordinator"
+
+  # CORS
+  Cors__AllowedOrigins: "http://localhost:5173,https://uniwa-stls.local"
+  Cors__AllowedMethods: "GET,POST,PUT,PATCH,DELETE,OPTIONS"
+  Cors__AllowedHeaders: "Content-Type,Authorization"
+
+  # JWT
+  Jwt__Issuer: "http://uniwa-stls-backend:8080"
+  Jwt__Audience: "http://uniwa-stls-backend:8080"
+
+  # Databases
+  ## TrafficLightDB (MSSQL)
+
+  # Message Broker
+  ## Configuration
+  RabbitMQ__Host: "rabbitmq-svc"
+  RabbitMQ__VirtualHost: "/"
+  RabbitMQ__Port: "5672"
+
+  ## Exchanges
+  RabbitMQ__Exchanges__Traffic: "TRAFFIC.EXCHANGE"
+  RabbitMQ__Exchanges__Log: "LOG.EXCHANGE"
+
+  ## Queues
+  RabbitMQ__Queues__Traffic__PriorityCount: "priority-count-2-light-coordinator.queue"
+  RabbitMQ__Queues__Traffic__PriorityDetection: "priority-detection-2-light-coordinator.queue"
+  RabbitMQ__Queues__Traffic__Analytics: "analytics-2-light-coordinator.queue"
+
+  ## Routing Keys
+  ### Consume
+  RabbitMQ__RoutingKeys__Traffic__PriorityCount: "priority.count.#"
+  RabbitMQ__RoutingKeys__Traffic__PriorityDetection: "priority.detection.#"
+  RabbitMQ__RoutingKeys__Traffic__Analytics: "traffic.analytics.#"
+  ### Publish
+  RabbitMQ__RoutingKeys__Traffic__LightSchedule: "traffic.light.schedule.{intersection}"
+  RabbitMQ__RoutingKeys__Traffic__LightControl: "traffic.light.control.{intersection}.{light}"
+  RabbitMQ__RoutingKeys__Log__Coordinator: "log.{layer}.{service}.{type}"

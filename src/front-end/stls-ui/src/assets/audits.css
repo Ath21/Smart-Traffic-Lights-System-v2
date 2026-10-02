@@ -1,0 +1,43 @@
+.audits-page {
+  padding: 3rem;
+}
+
+.page-title {
+  font-size: 1.8rem;
+  margin-bottom: 1rem;
+}
+
+.controls {
+  margin-bottom: 1rem;
+}
+
+.input-userid {
+  padding: 0.4rem 0.6rem;
+  margin-right: 0.5rem;
+  width: 120px;
+}
+
+.audits-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.audits-table th,
+.audits-table td {
+  border: 1px solid #ccc;
+  padding: 0.5rem;
+}
+
+.loading {
+  font-style: italic;
+}
+
+.error {
+  color: red;
+  margin-top: 1rem;
+}
+
+.empty {
+  font-style: italic;
+  color: #555;
+}

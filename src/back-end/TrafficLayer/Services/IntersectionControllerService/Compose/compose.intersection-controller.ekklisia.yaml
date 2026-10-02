@@ -1,0 +1,119 @@
+services:
+  intersection-controller-ekklisia:
+    image: ath21/stls-services:intersection-controller
+    container_name: intersection-controller-ekklisia-container
+    ports:
+      - '5193:8080'
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+      SERVICE_LAYER: Traffic
+      SERVICE_LEVEL: Fog
+      SERVICE_NAME: Intersection Controller
+
+      # Intersection Details
+      Intersection__Id: 4
+      Intersection__Name: Ekklisia
+
+      # ============================
+      # Traffic Lights Managed by this Controller
+      # ============================
+      TrafficLights__0__Id: 401
+      TrafficLights__0__Name: Dimitsanas
+      TrafficLights__1__Id: 402
+      TrafficLights__1__Name: Edessis
+      TrafficLights__2__Id: 403
+      TrafficLights__2__Name: Korytsas
+
+      # TrafficLightCacheDB (Redis)
+      Redis__TrafficLight__Host: traffic-light-cache-db
+      Redis__TrafficLight__Port: 6379
+      Redis__TrafficLight__Password: ""
+      Redis__TrafficLight__Database: 0
+      Redis__TrafficLight__KeyPrefix__State: traffic_light:{intersection}:{light}:state
+      Redis__TrafficLight__KeyPrefix__CurrentPhase: traffic_light:{intersection}:{light}:phase
+      Redis__TrafficLight__KeyPrefix__RemainingTime: traffic_light:{intersection}:{light}:remaining
+      Redis__TrafficLight__KeyPrefix__Duration: traffic_light:{intersection}:{light}:duration
+      Redis__TrafficLight__KeyPrefix__LastUpdate: traffic_light:{intersection}:{light}:last_update
+      Redis__TrafficLight__KeyPrefix__CycleDuration: traffic_light:{intersection}:{light}:cycle_duration
+      Redis__TrafficLight__KeyPrefix__Offset: traffic_light:{intersection}:{light}:offset
+      Redis__TrafficLight__KeyPrefix__LocalOffset: traffic_light:{intersection}:{light}:local_offset
+      Redis__TrafficLight__KeyPrefix__CycleProgress: traffic_light:{intersection}:{light}:cycle_progress
+      Redis__TrafficLight__KeyPrefix__Mode: traffic_light:{intersection}:{light}:mode
+      Redis__TrafficLight__KeyPrefix__Priority: traffic_light:{intersection}:{light}:priority
+      Redis__TrafficLight__KeyPrefix__CachedPhases: traffic_light:{intersection}:{light}:cached_phases
+      Redis__TrafficLight__KeyPrefix__FailoverActive: traffic_light:{intersection}:{light}:failover
+      Redis__TrafficLight__KeyPrefix__LastCoordinatorSync: traffic_light:{intersection}:last_sync
+      Redis__TrafficLight__KeyPrefix__Heartbeat: traffic_light:{intersection}:{light}:heartbeat
+
+      # DetectionCacheDB (Redis)
+      Redis__Host: detection-cache-db
+      Redis__Port: 6379
+      Redis__Password: ""
+      Redis__Database: 0
+      Redis__Sensor__KeyPrefix__VehicleCount: sensor:{intersection}.vehicle_count
+      Redis__Sensor__KeyPrefix__PedestrianCount: sensor:{intersection}.pedestrian_count
+      Redis__Sensor__KeyPrefix__CyclistCount: sensor:{intersection}.cyclist_count
+      Redis__Detection__KeyPrefix__EmergencyDetections: detection:{intersection}.emergency_vehicle_detected
+      Redis__Detection__KeyPrefix__PublicTransportDetections: detection:{intersection}.public_transport_detected
+      Redis__Detection__KeyPrefix__IncidentDetections: detection:{intersection}.incident_detected
+
+      # CORS
+      Cors__AllowedOrigins: http://localhost:5173,https://uniwa-stls.local
+      Cors__AllowedMethods: GET,POST,PUT,PATCH,DELETE,OPTIONS
+      Cors__AllowedHeaders: Content-Type,Authorization
+
+      # JWT
+      Jwt__Issuer: http://uniwa-stls-backend:8080
+      Jwt__Audience: http://uniwa-stls-backend:8080
+      Jwt__Key: Nn7kLa8Rzv1XHt9UwMqP4YbFdJxVt2Km
+
+      # RabbitMQ
+      ## Configuration
+      RabbitMQ__Host: rabbitmq
+      RabbitMQ__VirtualHost: /
+      RabbitMQ__Port: 5672
+      RabbitMQ__Username: rabbitmq
+      RabbitMQ__Password: rabbitmq123
+
+      ## Exchanges
+      RabbitMQ__Exchanges__Sensor: SENSOR.EXCHANGE
+      RabbitMQ__Exchanges__Traffic: TRAFFIC.EXCHANGE
+      RabbitMQ__Exchanges__Log: LOG.EXCHANGE
+
+      ## Queues
+      RabbitMQ__Queues__Sensor__SensorCount: sensor-2-intersection-controller.{intersection}.queue
+      RabbitMQ__Queues__Sensor__DetectionEvents: detection-2-intersection-controller.{intersection}.queue
+      RabbitMQ__Queues__Traffic__LightSchedule: coordinator-2-intersection-controller.{intersection}.queue
+
+      ## Routing Keys
+      ### Consume 
+      RabbitMQ__RoutingKeys__Sensor__SensorCount: sensor.count.# 
+      RabbitMQ__RoutingKeys__Sensor__DetectionEvents: sensor.detection.#
+      RabbitMQ__RoutingKeys__Traffic__LightSchedule: traffic.light.schedule.*
+      ### Publish
+      RabbitMQ__RoutingKeys__Traffic__PriorityCount: priority.count.{intersection}.{type}
+      RabbitMQ__RoutingKeys__Traffic__PriorityDetection: priority.detection.{intersection}.{event}
+      RabbitMQ__RoutingKeys__Traffic__LightControl: traffic.light.control.{intersection}.{light}
+      RabbitMQ__RoutingKeys__Log__IntersectionController: log.{layer}.{service}.{type}
+    
+    networks:
+      - traffic-light-cache-network
+      - detection-cache-network
+      - rabbitmq-network
+
+    restart: always
+
+networks:
+  traffic-light-cache-network:
+    name: traffic-light-cache-network
+    driver: bridge
+    external: true
+  detection-cache-network:
+    name: detection-cache-network
+    driver: bridge
+    external: true
+  rabbitmq-network:
+    name: rabbitmq-network
+    driver: bridge
+    external: true

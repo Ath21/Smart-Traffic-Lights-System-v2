@@ -1,0 +1,182 @@
+/* ================================
+   Register Page Background
+================================ */
+.register-page {
+  position: relative;
+  min-height: 100vh;
+  background: url('/Register-Page.jpg') center center / cover no-repeat;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 1rem;
+  font-family: Arial, sans-serif; /* added */
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+}
+
+/* ================================
+   Register Card with clearer layout
+================================ */
+.register-card {
+  position: relative;
+  width: 100%;
+  max-width: 460px;
+  margin: 2rem;
+
+  background: url('/Register-Card.jpg') center/cover no-repeat;
+
+  border-radius: 24px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+  overflow: hidden;
+  z-index: 1;
+  font-family: Arial, sans-serif; /* added */
+}
+
+/* Darker overlay inside the card */
+.register-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  z-index: 0;
+}
+
+/* Card content */
+.card-content {
+  position: relative;
+  z-index: 1;
+  padding: 3rem 2.5rem;
+  font-family: Arial, sans-serif; /* added */
+}
+
+/* Title section */
+.title {
+  font-size: 2rem;
+  font-weight: 800;
+  text-align: center;
+  color: #fff;
+  margin-bottom: 1.8rem;
+  font-family: Arial, sans-serif; /* added */
+}
+
+/* Form */
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+  font-family: Arial, sans-serif; /* added */
+}
+
+/* Inputs - more solid white */
+.input {
+  padding: 0.85rem 1rem;
+  border-radius: 12px;
+  border: none;
+  font-size: 1rem;
+  background: #fff;
+  color: #111;
+  transition: box-shadow 0.2s;
+  font-family: Arial, sans-serif; /* added */
+}
+
+.input:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.45);
+}
+
+/* Submit Button */
+.submit-btn {
+  background: linear-gradient(to right, #14b8a6, #06b6d4);
+  color: white;
+  font-size: 1.1rem;
+  font-weight: bold;
+  border: none;
+  border-radius: 12px;
+  padding: 1rem;
+  cursor: pointer;
+  transition: transform 0.2s, background 0.3s ease;
+  font-family: Arial, sans-serif; /* added */
+}
+
+.submit-btn:hover {
+  background: linear-gradient(to right, #0d9488, #0891b2);
+  transform: translateY(-2px);
+}
+
+/* Footer */
+.footer-text {
+  margin-top: 1.8rem;
+  text-align: center;
+  font-size: 0.95rem;
+  color: #eee;
+  font-family: Arial, sans-serif; /* added */
+}
+
+.login-link {
+  color: #38d0c4;
+  font-weight: 600;
+  text-decoration: none;
+  font-family: Arial, sans-serif; /* added */
+}
+
+.login-link:hover {
+  text-decoration: underline;
+}
+
+/* Password wrapper */
+.password-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  font-family: Arial, sans-serif; /* added */
+}
+
+.password-input {
+  width: 100%;
+  padding-right: 2.5rem;
+  font-family: Arial, sans-serif; /* added */
+}
+
+.toggle-eye {
+  position: absolute;
+  right: 12px;
+  cursor: pointer;
+  color: #444;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.eye-icon {
+  width: 22px;
+  height: 22px;
+  stroke-width: 2.2;
+}
+
+/* Caps Lock warning */
+.caps-warning {
+  margin-top: -0.3rem;
+  margin-bottom: 0.8rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #fff;
+  background: #dc2626;
+  padding: 0.4rem 0.75rem;
+  border-radius: 6px;
+  display: inline-block;
+  text-align: center;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+  font-family: Arial, sans-serif; /* added */
+}
+
+/* Fade animation */
+.fade-enter-active, .fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+.fade-enter-from, .fade-leave-to {
+  opacity: 0;
+}

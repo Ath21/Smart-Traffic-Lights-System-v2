@@ -1,0 +1,12 @@
+services:
+  detection-db:
+    image: ath21/stls-databases:detection-mongo
+    container_name: detection-db-container
+    networks:
+      - detection-network
+
+networks:
+  detection-network:
+    name: detection-network
+    driver: bridge
+    external: true

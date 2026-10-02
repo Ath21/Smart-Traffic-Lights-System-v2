@@ -1,0 +1,88 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: traffic-light-controller-agiou-spyridonos502-depl
+  namespace: uniwa-stls
+  labels:
+    app: traffic-light-controller-agiou-spyridonos502
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: traffic-light-controller-agiou-spyridonos502
+  template:
+    metadata:
+      labels:
+        app: traffic-light-controller-agiou-spyridonos502
+    spec:
+      containers:
+        - name: traffic-light-controller-agiou-spyridonos502-container
+          image: ath21/stls-services:traffic-light-controller
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+
+          # --- Load from ConfigMap and Secret ---
+          envFrom:
+            - configMapRef:
+                name: traffic-light-controller-config
+            - secretRef:
+                name: traffic-light-controller-secret
+
+          env:
+            # --- Intersection Details ---
+            - name: "Intersection__Id"
+              value: "5"
+            - name: "Intersection__Name"
+              value: "Kentriki Pyli"
+
+            # --- Traffic Lights ---
+            - name: "TrafficLights__Id"
+              value: "502"
+            - name: "TrafficLights__Name"
+              value: "Agiou Spyridonas"
+
+          # --- Probes ---
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 15
+            timeoutSeconds: 3
+            failureThreshold: 3
+
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 8080
+            initialDelaySeconds: 15
+            periodSeconds: 20
+            timeoutSeconds: 5
+            failureThreshold: 3
+
+          # --- Resource Limits ---
+          resources:
+            requests:
+              cpu: 50m   # instead of 100-150m
+              memory: 128Mi
+            limits:
+              cpu: 200m  # instead of 300-400m
+              memory: 256Mi
+
+
+      restartPolicy: Always
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: traffic-light-controller-agiou-spyridonas502-svc
+  namespace: uniwa-stls
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8080
+      targetPort: 8080
+  selector:
+    app: traffic-light-controller-agiou-spyridonas502

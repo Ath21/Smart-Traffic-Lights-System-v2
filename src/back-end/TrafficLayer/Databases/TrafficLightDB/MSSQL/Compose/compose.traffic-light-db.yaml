@@ -1,0 +1,12 @@
+services:  
+  traffic-light-db:
+    image: ath21/stls-databases:traffic-light-mssql
+    container_name: traffic-light-db-container
+    networks:
+      - traffic-light-network
+
+networks:
+  traffic-light-network:
+    name: traffic-light-network
+    driver: bridge
+    external: true

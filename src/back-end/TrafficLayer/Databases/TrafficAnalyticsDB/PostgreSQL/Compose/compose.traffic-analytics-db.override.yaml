@@ -1,0 +1,21 @@
+services:
+  traffic-analytics-db:
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres123
+      POSTGRES_DB: TrafficAnalyticsDB
+    ports:
+      - '5432:5432'
+    volumes:
+      - traffic-analytics-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB} -h 127.0.0.1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+volumes:
+  traffic-analytics-db-data:
+    name: traffic-analytics-db-data
+    driver: local

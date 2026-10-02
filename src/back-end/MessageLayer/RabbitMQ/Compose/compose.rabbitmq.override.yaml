@@ -1,0 +1,21 @@
+services:
+  rabbitmq:
+    ports:
+      - '5672:5672'   # RabbitMQ Server
+      - '15672:15672' # Management UI
+    environment:
+      RABBITMQ_DEFAULT_USER: rabbitmq
+      RABBITMQ_DEFAULT_PASS: rabbitmq123
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    restart: always
+    healthcheck:
+      test: ["CMD", "rabbitmqctl", "status"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  rabbitmq-data:
+    name: rabbitmq-data
+    driver: local

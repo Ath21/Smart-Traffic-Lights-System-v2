@@ -1,0 +1,14 @@
+services:
+
+  portainer:
+    image: ath21/stls-monitor:portainer
+    container_name: portainer-container
+    networks:
+      - log-network
+   
+      
+networks:
+  log-network:
+    name: log-network
+    driver: bridge
+    external: true

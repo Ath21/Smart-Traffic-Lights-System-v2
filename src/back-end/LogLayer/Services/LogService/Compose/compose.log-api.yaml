@@ -1,0 +1,17 @@
+services:
+  log-api:
+    image: ath21/stls-services:log-api
+    container_name: log-api-container
+    networks:
+      - log-network
+      - rabbitmq-network
+
+networks:
+  log-network:
+    name: log-network
+    driver: bridge
+    external: true
+  rabbitmq-network:
+    name: rabbitmq-network
+    driver: bridge
+    external: true

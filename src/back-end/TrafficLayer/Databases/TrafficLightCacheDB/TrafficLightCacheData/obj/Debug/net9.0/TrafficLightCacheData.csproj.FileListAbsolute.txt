@@ -1,0 +1,13 @@
+/home/ath/Smart-Traffic-Lights-System/src/back-end/TrafficLayer/Databases/TrafficLightCacheDB/TrafficLightCacheData/obj/Debug/net9.0/TrafficLightCacheData.csproj.AssemblyReference.cache
+/home/ath/Smart-Traffic-Lights-System/src/back-end/TrafficLayer/Databases/TrafficLightCacheDB/TrafficLightCacheData/obj/Debug/net9.0/TrafficLightCacheData.GeneratedMSBuildEditorConfig.editorconfig
+/home/ath/Smart-Traffic-Lights-System/src/back-end/TrafficLayer/Databases/TrafficLightCacheDB/TrafficLightCacheData/obj/Debug/net9.0/TrafficLightCacheData.AssemblyInfoInputs.cache
+/home/ath/Smart-Traffic-Lights-System/src/back-end/TrafficLayer/Databases/TrafficLightCacheDB/TrafficLightCacheData/obj/Debug/net9.0/TrafficLightCacheData.AssemblyInfo.cs
+/home/ath/Smart-Traffic-Lights-System/src/back-end/TrafficLayer/Databases/TrafficLightCacheDB/TrafficLightCacheData/obj/Debug/net9.0/TrafficLightCacheData.csproj.CoreCompileInputs.cache
+/home/ath/Smart-Traffic-Lights-System/src/back-end/TrafficLayer/Databases/TrafficLightCacheDB/TrafficLightCacheData/obj/Debug/net9.0/TrafficLightCacheData.sourcelink.json
+/home/ath/Smart-Traffic-Lights-System/src/back-end/TrafficLayer/Databases/TrafficLightCacheDB/TrafficLightCacheData/bin/Debug/net9.0/TrafficLightCacheData.deps.json
+/home/ath/Smart-Traffic-Lights-System/src/back-end/TrafficLayer/Databases/TrafficLightCacheDB/TrafficLightCacheData/bin/Debug/net9.0/TrafficLightCacheData.dll
+/home/ath/Smart-Traffic-Lights-System/src/back-end/TrafficLayer/Databases/TrafficLightCacheDB/TrafficLightCacheData/bin/Debug/net9.0/TrafficLightCacheData.pdb
+/home/ath/Smart-Traffic-Lights-System/src/back-end/TrafficLayer/Databases/TrafficLightCacheDB/TrafficLightCacheData/obj/Debug/net9.0/TrafficLightCacheData.dll
+/home/ath/Smart-Traffic-Lights-System/src/back-end/TrafficLayer/Databases/TrafficLightCacheDB/TrafficLightCacheData/obj/Debug/net9.0/refint/TrafficLightCacheData.dll
+/home/ath/Smart-Traffic-Lights-System/src/back-end/TrafficLayer/Databases/TrafficLightCacheDB/TrafficLightCacheData/obj/Debug/net9.0/TrafficLightCacheData.pdb
+/home/ath/Smart-Traffic-Lights-System/src/back-end/TrafficLayer/Databases/TrafficLightCacheDB/TrafficLightCacheData/obj/Debug/net9.0/ref/TrafficLightCacheData.dll

@@ -1,0 +1,15 @@
+services:
+  detection-db:
+    ports:
+      - '27019:27017'
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: mongo
+      MONGO_INITDB_ROOT_PASSWORD: mongo123
+    volumes:
+      - detection-db-data:/data/db
+    restart: always
+
+volumes:
+  detection-db-data:
+    name: detection-db-data
+    driver: local

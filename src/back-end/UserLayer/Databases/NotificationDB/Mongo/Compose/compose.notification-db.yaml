@@ -1,0 +1,12 @@
+services:
+  notification-db:
+    image: ath21/stls-databases:notification-mongo
+    container_name: notification-db-container
+    networks:
+      - notification-network
+
+networks:
+  notification-network:
+    name: notification-network
+    driver: bridge
+    external: true
