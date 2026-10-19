@@ -1,0 +1,62 @@
+
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+!.env.*.example
+!.env.example.*
+!.env.*.example.*
+
+# Python virtual environments
+.venv/
+venv/
+env/
+
+# Python bytecode and caches
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.pyright/
+.ruff_cache/
+.hypothesis/
+
+# Test and coverage reports
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+junit.xml
+
+# Logs and temporary files
+*.log
+*.tmp
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Python packaging/build artifacts
+build/
+dist/
+*.egg-info/
+.eggs/
+wheels/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Node.js / Vue / Vite
+node_modules/
+dist/
+.vite/
+coverage/
+
+# Local IDE settings
+.idea/
+.vscode/
+
+# Local environment and generated test output
+.env.local
+
