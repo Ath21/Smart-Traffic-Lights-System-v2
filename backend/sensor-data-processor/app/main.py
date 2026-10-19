@@ -34,7 +34,7 @@ app = FastAPI(
         "Validates, deduplicates, caches, and publishes "
         "sensor observations."
     ),
-    version="1.0.0",
+    version="1.0",
     lifespan=lifespan,
 )
 
