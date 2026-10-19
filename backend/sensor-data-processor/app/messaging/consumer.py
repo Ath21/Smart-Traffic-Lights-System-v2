@@ -1,12 +1,14 @@
 
+import asyncio
 import json
 
 import aio_pika
 from pydantic import ValidationError
+from redis.asyncio import Redis
 
+from app.cache import REDIS_URL, cache_observation
 from app.messaging.config import (
     EXCHANGE_NAME,
-    EXCHANGE_TYPE,
     INPUT_QUEUE,
     INPUT_ROUTING_KEY,
     RABBITMQ_URL,
@@ -21,13 +23,17 @@ from app.schemas import (
 async def handle_message(
     message: aio_pika.abc.AbstractIncomingMessage,
     exchange: aio_pika.abc.AbstractExchange,
+    redis_client: Redis,
 ) -> None:
     try:
         payload = json.loads(message.body)
         observation = SensorObservation.model_validate(payload)
-    except (json.JSONDecodeError, UnicodeDecodeError, ValidationError):
-        # Invalid messages must not be retried forever.
-        # A dead-letter queue can be added in the reliability milestone.
+    except (
+        json.JSONDecodeError,
+        UnicodeDecodeError,
+        ValidationError,
+    ):
+        # Invalid messages should not be retried indefinitely.
         await message.reject(requeue=False)
         return
 
@@ -35,50 +41,79 @@ async def handle_message(
         **observation.model_dump(),
     )
 
-    # If publishing fails, leave the input eligible for redelivery.
+    # If caching fails, request redelivery rather than silently
+    # continuing without the expected cache update.
+    try:
+        await cache_observation(redis_client, processed)
+    except Exception:
+        await message.nack(requeue=True)
+        raise
+
+    # Publish even when the cache reports "duplicate" or "stale".
+    # The cache is a latest-value view; it is not an event-delivery log.
     try:
         await publish_processed(exchange, processed)
     except Exception:
         await message.nack(requeue=True)
         raise
 
-    # Acknowledge only after the output publication succeeds.
+    # Acknowledge only after caching and output publication succeed.
     await message.ack()
 
 
 async def run_consumer() -> None:
-    connection = await aio_pika.connect_robust(RABBITMQ_URL)
+    redis_client = Redis.from_url(
+        REDIS_URL,
+        decode_responses=True,
+    )
 
-    async with connection:
-        channel = await connection.channel(
-            publisher_confirms=True,
-        )
-        await channel.set_qos(prefetch_count=10)
+    try:
+        await redis_client.ping()
 
-        exchange = await channel.declare_exchange(
-            EXCHANGE_NAME,
-            aio_pika.ExchangeType.TOPIC,
-            durable=True,
-        )
+        connection = await aio_pika.connect_robust(RABBITMQ_URL)
 
-        queue = await channel.declare_queue(
-            INPUT_QUEUE,
-            durable=True,
-        )
+        async with connection:
+            channel = await connection.channel(
+                publisher_confirms=True,
+            )
+            await channel.set_qos(prefetch_count=10)
 
-        await queue.bind(
-            exchange,
-            routing_key=INPUT_ROUTING_KEY,
-        )
+            exchange = await channel.declare_exchange(
+                EXCHANGE_NAME,
+                aio_pika.ExchangeType.TOPIC,
+                durable=True,
+            )
 
-        await queue.consume(
-            lambda message: handle_message(message, exchange),
-            no_ack=False,
-        )
+            queue = await channel.declare_queue(
+                INPUT_QUEUE,
+                durable=True,
+            )
 
-        print("Sensor Data Processor is consuming messages.")
+            await queue.bind(
+                exchange,
+                routing_key=INPUT_ROUTING_KEY,
+            )
 
-        # Keep the connection open while the consumer runs.
-        import asyncio
-        await asyncio.Future()
+            await queue.consume(
+                lambda message: handle_message(
+                    message,
+                    exchange,
+                    redis_client,
+                ),
+                no_ack=False,
+            )
+
+            print(
+                "Sensor Data Processor is consuming messages "
+                "with Redis caching enabled."
+            )
+
+            await asyncio.Future()
+    finally:
+        await redis_client.aclose()
+
+
+if __name__ == "__main__":
+    asyncio.run(run_consumer())
+
 

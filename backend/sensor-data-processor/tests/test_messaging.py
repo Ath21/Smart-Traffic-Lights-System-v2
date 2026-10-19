@@ -1,4 +1,3 @@
-
 import json
 from unittest.mock import AsyncMock
 from uuid import uuid4
@@ -50,14 +49,27 @@ async def test_publisher_uses_expected_routing_key():
 
 
 @pytest.mark.asyncio
-async def test_valid_message_is_published_then_acknowledged():
+async def test_valid_message_is_cached_published_then_acknowledged(
+    monkeypatch,
+):
     payload = valid_payload()
-
     message = AsyncMock()
     message.body = json.dumps(payload).encode("utf-8")
     exchange = AsyncMock()
+    redis_client = AsyncMock()
+    cache_mock = AsyncMock(return_value="updated")
 
-    await handle_message(message, exchange)
+    monkeypatch.setattr(
+        "app.messaging.consumer.cache_observation",
+        cache_mock,
+    )
+
+    await handle_message(message, exchange, redis_client)
+
+    cache_mock.assert_awaited_once()
+    cached_observation = cache_mock.await_args.args[1]
+    assert isinstance(cached_observation, ProcessedSensorObservation)
+    assert cached_observation.count == 12
 
     exchange.publish.assert_awaited_once()
     message.ack.assert_awaited_once()
@@ -66,32 +78,70 @@ async def test_valid_message_is_published_then_acknowledged():
 
 
 @pytest.mark.asyncio
-async def test_invalid_message_is_rejected():
+async def test_invalid_message_is_rejected(monkeypatch):
     payload = valid_payload()
     payload["count"] = -1
 
     message = AsyncMock()
     message.body = json.dumps(payload).encode("utf-8")
     exchange = AsyncMock()
+    redis_client = AsyncMock()
+    cache_mock = AsyncMock()
 
-    await handle_message(message, exchange)
+    monkeypatch.setattr(
+        "app.messaging.consumer.cache_observation",
+        cache_mock,
+    )
 
+    await handle_message(message, exchange, redis_client)
+
+    cache_mock.assert_not_awaited()
     exchange.publish.assert_not_awaited()
     message.reject.assert_awaited_once_with(requeue=False)
     message.ack.assert_not_awaited()
 
 
 @pytest.mark.asyncio
-async def test_publish_failure_requests_redelivery():
+async def test_redis_failure_requests_redelivery(monkeypatch):
     message = AsyncMock()
     message.body = json.dumps(valid_payload()).encode("utf-8")
+    exchange = AsyncMock()
+    redis_client = AsyncMock()
+    cache_mock = AsyncMock(
+        side_effect=RuntimeError("Redis unavailable"),
+    )
 
+    monkeypatch.setattr(
+        "app.messaging.consumer.cache_observation",
+        cache_mock,
+    )
+
+    with pytest.raises(RuntimeError, match="Redis unavailable"):
+        await handle_message(message, exchange, redis_client)
+
+    exchange.publish.assert_not_awaited()
+    message.nack.assert_awaited_once_with(requeue=True)
+    message.ack.assert_not_awaited()
+
+
+@pytest.mark.asyncio
+async def test_publish_failure_requests_redelivery(monkeypatch):
+    message = AsyncMock()
+    message.body = json.dumps(valid_payload()).encode("utf-8")
     exchange = AsyncMock()
     exchange.publish.side_effect = RuntimeError("broker unavailable")
+    redis_client = AsyncMock()
+    cache_mock = AsyncMock(return_value="updated")
+
+    monkeypatch.setattr(
+        "app.messaging.consumer.cache_observation",
+        cache_mock,
+    )
 
     with pytest.raises(RuntimeError, match="broker unavailable"):
-        await handle_message(message, exchange)
+        await handle_message(message, exchange, redis_client)
 
+    cache_mock.assert_awaited_once()
     message.nack.assert_awaited_once_with(requeue=True)
     message.ack.assert_not_awaited()
 
