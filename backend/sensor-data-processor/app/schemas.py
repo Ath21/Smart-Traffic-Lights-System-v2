@@ -1,33 +1,46 @@
+
 from datetime import datetime, timezone
-from typing import Literal
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
-IntersectionId = Literal[
-        "anatoliki-pyli-1",
-        "agiou-spyridonos-2",
-        "ekklisia-3",
-]
+from app.config import INTERSECTION_LIGHTS
 
-SensorType = Literal[
-        "vehicle-count",
-        "pedestrian-count",
-        "bicycle-count",
-]
+
+SensorType = str
+
 
 class SensorObservation(BaseModel):
-    """Raw sensor observation received from a workload generator."""
+    """Raw traffic observation generated for a specific traffic light."""
 
     model_config = ConfigDict(extra="forbid")
 
-    schema_version: Literal["1.0"] = "1.0"
+    schema_version: str = "1.0"
     event_id: UUID
-    intersection_id: IntersectionId
+    intersection_id: str = Field(min_length=1, max_length=100)
+    light_id: str = Field(min_length=1, max_length=100)
     sensor_type: SensorType
-    sensor_id: str = Field(min_length=1, max_length=100)
     count: int = Field(ge=0)
     observed_at: datetime
+
+    @field_validator("schema_version")
+    @classmethod
+    def validate_schema_version(cls, value: str) -> str:
+        if value != "1.0":
+            raise ValueError("schema_version must be '1.0'")
+        return value
+
+    @field_validator("sensor_type")
+    @classmethod
+    def validate_sensor_type(cls, value: str) -> str:
+        allowed = {
+            "vehicle-count",
+            "pedestrian-count",
+            "bicycle-count",
+        }
+        if value not in allowed:
+            raise ValueError(f"sensor_type must be one of {sorted(allowed)}")
+        return value
 
     @field_validator("observed_at")
     @classmethod
@@ -36,11 +49,29 @@ class SensorObservation(BaseModel):
             raise ValueError("observed_at must include a timezone")
         return value
 
+    @model_validator(mode="after")
+    def validate_light_assignment(self):
+        allowed_lights = INTERSECTION_LIGHTS.get(self.intersection_id)
+
+        if allowed_lights is None:
+            raise ValueError(
+                f"Unknown intersection_id: {self.intersection_id}"
+            )
+
+        if self.light_id not in allowed_lights:
+            raise ValueError(
+                f"Light '{self.light_id}' does not belong to "
+                f"intersection '{self.intersection_id}'"
+            )
+
+        return self
+
+
 class ProcessedSensorObservation(SensorObservation):
     """Validated sensor observation enriched by the processor."""
 
     processed_at: datetime = Field(
-            default_factory=lambda: datetime.now(timezone.utc)
+        default_factory=lambda: datetime.now(timezone.utc)
     )
 
     @field_validator("processed_at")

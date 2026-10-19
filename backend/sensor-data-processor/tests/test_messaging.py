@@ -1,3 +1,4 @@
+
 import json
 from unittest.mock import AsyncMock
 from uuid import uuid4
@@ -5,18 +6,24 @@ from uuid import uuid4
 import aio_pika
 import pytest
 
+from app.config import INTERSECTION_LIGHTS
 from app.messaging.consumer import handle_message
 from app.messaging.publisher import publish_processed
 from app.schemas import ProcessedSensorObservation
+
+
+TEST_INTERSECTION_ID = next(iter(INTERSECTION_LIGHTS))
+TEST_LIGHT_ID = next(iter(INTERSECTION_LIGHTS[TEST_INTERSECTION_ID]))
+TEST_SENSOR_TYPE = "vehicle-count"
 
 
 def valid_payload() -> dict:
     return {
         "schema_version": "1.0",
         "event_id": str(uuid4()),
-        "intersection_id": "ekklisia-3",
-        "sensor_type": "vehicle-count",
-        "sensor_id": "sensor-ekklisia-3-vehicle-01",
+        "intersection_id": TEST_INTERSECTION_ID,
+        "light_id": TEST_LIGHT_ID,
+        "sensor_type": TEST_SENSOR_TYPE,
         "count": 12,
         "observed_at": "2026-10-19T10:15:30Z",
     }
@@ -33,7 +40,8 @@ async def test_publisher_uses_expected_routing_key():
     args = exchange.publish.await_args.kwargs
 
     assert args["routing_key"] == (
-        "stls.sensor-data.processed.ekklisia-3.vehicle-count"
+        f"stls.sensor-data.processed."
+        f"{TEST_INTERSECTION_ID}.{TEST_SENSOR_TYPE}"
     )
     assert args["mandatory"] is True
 
@@ -44,14 +52,13 @@ async def test_publisher_uses_expected_routing_key():
 
     published = json.loads(message.body)
     assert published["count"] == 12
-    assert published["intersection_id"] == "ekklisia-3"
+    assert published["intersection_id"] == TEST_INTERSECTION_ID
+    assert published["light_id"] == TEST_LIGHT_ID
     assert "processed_at" in published
 
 
 @pytest.mark.asyncio
-async def test_valid_message_is_cached_published_then_acknowledged(
-    monkeypatch,
-):
+async def test_valid_message_is_cached_published_then_acknowledged(monkeypatch):
     payload = valid_payload()
     message = AsyncMock()
     message.body = json.dumps(payload).encode("utf-8")
@@ -68,8 +75,10 @@ async def test_valid_message_is_cached_published_then_acknowledged(
 
     cache_mock.assert_awaited_once()
     cached_observation = cache_mock.await_args.args[1]
+
     assert isinstance(cached_observation, ProcessedSensorObservation)
     assert cached_observation.count == 12
+    assert cached_observation.light_id == TEST_LIGHT_ID
 
     exchange.publish.assert_awaited_once()
     message.ack.assert_awaited_once()
@@ -144,4 +153,3 @@ async def test_publish_failure_requests_redelivery(monkeypatch):
     cache_mock.assert_awaited_once()
     message.nack.assert_awaited_once_with(requeue=True)
     message.ack.assert_not_awaited()
-

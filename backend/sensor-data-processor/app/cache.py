@@ -2,18 +2,18 @@
 import os
 
 from redis.asyncio import Redis
-
+from dotenv import load_dotenv
 from app.schemas import ProcessedSensorObservation
 
 
 SENSOR_CACHE_TTL_SECONDS = int(
-    os.getenv("SENSOR_CACHE_TTL_SECONDS", "86400")
+        os.getenv("SENSOR_CACHE_TTL_SECONDS")
 )
 EVENT_DEDUP_TTL_SECONDS = int(
-    os.getenv("EVENT_DEDUP_TTL_SECONDS", "604800")
+    os.getenv("EVENT_DEDUP_TTL_SECONDS")
 )
 
-REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
+REDIS_URL = os.getenv("REDIS_URL")
 
 
 # One atomic operation:
@@ -46,7 +46,7 @@ return 'updated'
 
 def latest_observation_key(
     observation: ProcessedSensorObservation,
-) -> str:
+    ) -> str:
     return (
         f"stls:sensor:latest:{observation.intersection_id}:"
         f"{observation.sensor_type}"

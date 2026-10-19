@@ -12,7 +12,12 @@ from app.cache import (
     event_deduplication_key,
     latest_observation_key,
 )
+from app.config import INTERSECTION_LIGHTS
 from app.schemas import ProcessedSensorObservation
+
+
+TEST_INTERSECTION_ID = next(iter(INTERSECTION_LIGHTS))
+TEST_LIGHT_ID = next(iter(INTERSECTION_LIGHTS[TEST_INTERSECTION_ID]))
 
 
 @pytest_asyncio.fixture
@@ -34,14 +39,15 @@ def make_observation(
     event_id=None,
     count: int = 10,
     observed_at: datetime | None = None,
-    intersection_id: str = "ekklisia-3",
+    intersection_id: str = TEST_INTERSECTION_ID,
+    light_id: str = TEST_LIGHT_ID,
     sensor_type: str = "vehicle-count",
 ) -> ProcessedSensorObservation:
     return ProcessedSensorObservation(
         event_id=event_id or uuid4(),
         intersection_id=intersection_id,
+        light_id=light_id,
         sensor_type=sensor_type,
-        sensor_id="test-sensor-01",
         count=count,
         observed_at=observed_at or datetime.now(timezone.utc),
     )
@@ -106,10 +112,7 @@ async def test_duplicate_event_does_not_update_cache(redis_client):
 @pytest.mark.asyncio
 async def test_older_observation_does_not_overwrite_newer(redis_client):
     now = datetime.now(timezone.utc)
-    newer = make_observation(
-        count=20,
-        observed_at=now,
-    )
+    newer = make_observation(count=20, observed_at=now)
     older = make_observation(
         count=5,
         observed_at=now - timedelta(seconds=30),
@@ -126,4 +129,3 @@ async def test_older_observation_does_not_overwrite_newer(redis_client):
     finally:
         await clear_test_keys(redis_client, newer)
         await clear_test_keys(redis_client, older)
-
