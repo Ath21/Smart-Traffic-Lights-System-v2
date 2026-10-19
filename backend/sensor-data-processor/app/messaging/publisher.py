@@ -1,7 +1,7 @@
 
 import aio_pika
 
-from app.messaging.config import OUTPUT_ROUTING_KEY_TEMPLATE
+from app.config import OUTPUT_ROUTING_KEY_TEMPLATE
 from app.schemas import ProcessedSensorObservation
 
 

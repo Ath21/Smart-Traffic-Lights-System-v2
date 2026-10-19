@@ -1,7 +1,41 @@
-import asyncio
 
+import asyncio
+from contextlib import asynccontextmanager
+
+from fastapi import FastAPI
+
+from app.api.health import router as health_router, set_ready
 from app.messaging.consumer import run_consumer
 
 
-if __name__ == "__main__":
-    asyncio.run(run_consumer())
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    set_ready(False)
+
+    consumer_task = asyncio.create_task(
+        run_consumer(readiness_callback=set_ready)
+    )
+
+    try:
+        yield
+    finally:
+        set_ready(False)
+        consumer_task.cancel()
+
+        try:
+            await consumer_task
+        except asyncio.CancelledError:
+            pass
+
+
+app = FastAPI(
+    title="Sensor Data Processor",
+    description=(
+        "Validates, deduplicates, caches, and publishes "
+        "sensor observations."
+    ),
+    version="1.0.0",
+    lifespan=lifespan,
+)
+
+app.include_router(health_router)

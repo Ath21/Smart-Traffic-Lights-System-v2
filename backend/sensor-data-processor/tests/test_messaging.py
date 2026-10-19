@@ -12,18 +12,18 @@ from app.messaging.publisher import publish_processed
 from app.schemas import ProcessedSensorObservation
 
 
-TEST_INTERSECTION_ID = next(iter(INTERSECTION_LIGHTS))
-TEST_LIGHT_ID = next(iter(INTERSECTION_LIGHTS[TEST_INTERSECTION_ID]))
-TEST_SENSOR_TYPE = "vehicle-count"
+RABBITMQ_TEST_INTERSECTION_ID = next(iter(INTERSECTION_LIGHTS))
+RABBITMQ_TEST_LIGHT_ID = next(iter(INTERSECTION_LIGHTS[RABBITMQ_TEST_INTERSECTION_ID]))
+RABBITMQ_TEST_SENSOR_TYPE = "vehicle-count"
 
 
 def valid_payload() -> dict:
     return {
         "schema_version": "1.0",
         "event_id": str(uuid4()),
-        "intersection_id": TEST_INTERSECTION_ID,
-        "light_id": TEST_LIGHT_ID,
-        "sensor_type": TEST_SENSOR_TYPE,
+        "intersection_id": RABBITMQ_TEST_INTERSECTION_ID,
+        "light_id": RABBITMQ_TEST_LIGHT_ID,
+        "sensor_type": RABBITMQ_TEST_SENSOR_TYPE,
         "count": 12,
         "observed_at": "2026-10-19T10:15:30Z",
     }
@@ -41,7 +41,7 @@ async def test_publisher_uses_expected_routing_key():
 
     assert args["routing_key"] == (
         f"stls.sensor-data.processed."
-        f"{TEST_INTERSECTION_ID}.{TEST_SENSOR_TYPE}"
+        f"{RABBITMQ_TEST_INTERSECTION_ID}.{RABBITMQ_TEST_SENSOR_TYPE}"
     )
     assert args["mandatory"] is True
 
@@ -52,8 +52,8 @@ async def test_publisher_uses_expected_routing_key():
 
     published = json.loads(message.body)
     assert published["count"] == 12
-    assert published["intersection_id"] == TEST_INTERSECTION_ID
-    assert published["light_id"] == TEST_LIGHT_ID
+    assert published["intersection_id"] == RABBITMQ_TEST_INTERSECTION_ID
+    assert published["light_id"] == RABBITMQ_TEST_LIGHT_ID
     assert "processed_at" in published
 
 
@@ -78,7 +78,7 @@ async def test_valid_message_is_cached_published_then_acknowledged(monkeypatch):
 
     assert isinstance(cached_observation, ProcessedSensorObservation)
     assert cached_observation.count == 12
-    assert cached_observation.light_id == TEST_LIGHT_ID
+    assert cached_observation.light_id == RABBITMQ_TEST_LIGHT_ID
 
     exchange.publish.assert_awaited_once()
     message.ack.assert_awaited_once()

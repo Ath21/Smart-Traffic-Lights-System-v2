@@ -1,11 +1,20 @@
 
-from datetime import datetime, timezone
+from datetime import datetime
 from uuid import UUID
+from zoneinfo import ZoneInfo
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    field_validator,
+    model_validator,
+)
 
 from app.config import INTERSECTION_LIGHTS
 
+
+GREECE_TZ = ZoneInfo("Europe/Athens")
 
 SensorType = str
 
@@ -39,7 +48,9 @@ class SensorObservation(BaseModel):
             "bicycle-count",
         }
         if value not in allowed:
-            raise ValueError(f"sensor_type must be one of {sorted(allowed)}")
+            raise ValueError(
+                f"sensor_type must be one of {sorted(allowed)}"
+            )
         return value
 
     @field_validator("observed_at")
@@ -71,7 +82,7 @@ class ProcessedSensorObservation(SensorObservation):
     """Validated sensor observation enriched by the processor."""
 
     processed_at: datetime = Field(
-        default_factory=lambda: datetime.now(timezone.utc)
+        default_factory=lambda: datetime.now(GREECE_TZ)
     )
 
     @field_validator("processed_at")

@@ -5,9 +5,10 @@ import json
 import aio_pika
 from pydantic import ValidationError
 from redis.asyncio import Redis
+from collections.abc import Callable
 
 from app.cache import REDIS_URL, cache_observation
-from app.messaging.config import (
+from app.config import (
     EXCHANGE_NAME,
     INPUT_QUEUE,
     INPUT_ROUTING_KEY,
@@ -61,7 +62,16 @@ async def handle_message(
     await message.ack()
 
 
-async def run_consumer() -> None:
+
+async def run_consumer(
+    readiness_callback: Callable[[bool], None] | None = None,
+) -> None:
+    def update_readiness(ready: bool) -> None:
+        if readiness_callback is not None:
+            readiness_callback(ready)
+
+    update_readiness(False)
+
     redis_client = Redis.from_url(
         REDIS_URL,
         decode_responses=True,
@@ -108,12 +118,33 @@ async def run_consumer() -> None:
                 "with Redis caching enabled."
             )
 
-            await asyncio.Future()
+            # The consumer is registered and both dependencies
+            # have initialized successfully.
+            update_readiness(True)
+
+            while True:
+                await asyncio.sleep(5)
+
+                try:
+                    await redis_client.ping()
+
+                    broker_ready = (
+                        not connection.is_closed
+                        and connection.connected.is_set()
+                    )
+
+                    update_readiness(broker_ready)
+
+                except Exception:
+                    update_readiness(False)
+
     finally:
+        update_readiness(False)
         await redis_client.aclose()
 
 
 if __name__ == "__main__":
     asyncio.run(run_consumer())
+
 
 
