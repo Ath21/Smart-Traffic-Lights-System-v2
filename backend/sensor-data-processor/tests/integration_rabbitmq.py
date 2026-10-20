@@ -61,6 +61,7 @@ async def main() -> None:
         queue = await channel.declare_queue(
             OUTPUT_QUEUE,
             durable=False,
+            exclusive=True,
             auto_delete=True,
         )
         await queue.bind(exchange, routing_key=output_routing_key)

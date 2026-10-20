@@ -7,7 +7,7 @@ from pydantic import ValidationError
 
 from app.config import INTERSECTION_LIGHTS
 from app.schemas import ProcessedSensorObservation, SensorObservation
-
+from zoneinfo import ZoneInfo
 
 TEST_INTERSECTION_ID = next(iter(INTERSECTION_LIGHTS))
 TEST_LIGHT_ID = next(iter(INTERSECTION_LIGHTS[TEST_INTERSECTION_ID]))
@@ -101,10 +101,11 @@ def test_unexpected_fields_are_rejected():
 def test_processed_observation_adds_timestamp():
     observation = ProcessedSensorObservation.model_validate(valid_payload())
 
+    athens_tz = ZoneInfo("Europe/Athens")
+
     assert observation.processed_at.tzinfo is not None
-    assert observation.processed_at.utcoffset() == timezone.utc.utcoffset(
-        observation.processed_at
-    )
+    assert observation.processed_at.tzinfo == athens_tz
+
 
 
 def test_sensor_id_is_not_accepted():

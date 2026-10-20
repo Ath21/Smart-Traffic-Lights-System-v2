@@ -1,11 +1,12 @@
 
 import asyncio
 import json
+import logging
+from collections.abc import Callable
 
 import aio_pika
 from pydantic import ValidationError
 from redis.asyncio import Redis
-from collections.abc import Callable
 
 from app.cache import REDIS_URL, cache_observation
 from app.config import (
@@ -20,21 +21,30 @@ from app.schemas import (
     SensorObservation,
 )
 
+logger = logging.getLogger(__name__)
+
 
 async def handle_message(
     message: aio_pika.abc.AbstractIncomingMessage,
     exchange: aio_pika.abc.AbstractExchange,
     redis_client: Redis,
 ) -> None:
+    event_id = message.message_id or "unknown"
+
     try:
         payload = json.loads(message.body)
         observation = SensorObservation.model_validate(payload)
+
     except (
         json.JSONDecodeError,
         UnicodeDecodeError,
         ValidationError,
-    ):
-        # Invalid messages should not be retried indefinitely.
+    ) as exc:
+        logger.warning(
+            "Rejecting invalid sensor message: event_id=%s error=%s",
+            event_id,
+            exc,
+        )
         await message.reject(requeue=False)
         return
 
@@ -42,25 +52,37 @@ async def handle_message(
         **observation.model_dump(),
     )
 
-    # If caching fails, request redelivery rather than silently
-    # continuing without the expected cache update.
     try:
         await cache_observation(redis_client, processed)
     except Exception:
+        logger.exception(
+            "Redis cache update failed: event_id=%s",
+            processed.event_id,
+        )
         await message.nack(requeue=True)
-        raise
+        return
 
-    # Publish even when the cache reports "duplicate" or "stale".
-    # The cache is a latest-value view; it is not an event-delivery log.
     try:
         await publish_processed(exchange, processed)
     except Exception:
+        logger.exception(
+            "Processed event publication failed: event_id=%s",
+            processed.event_id,
+        )
         await message.nack(requeue=True)
-        raise
+        return
 
-    # Acknowledge only after caching and output publication succeed.
     await message.ack()
 
+    logger.info(
+        "Sensor event processed: event_id=%s intersection=%s "
+        "light=%s sensor_type=%s count=%s",
+        processed.event_id,
+        processed.intersection_id,
+        processed.light_id,
+        processed.sensor_type,
+        processed.count,
+    )
 
 
 async def run_consumer(
@@ -113,13 +135,14 @@ async def run_consumer(
                 no_ack=False,
             )
 
-            print(
-                "Sensor Data Processor is consuming messages "
-                "with Redis caching enabled."
+            logger.info(
+                "Sensor Data Processor started: "
+                "exchange=%s queue=%s routing_key=%s",
+                EXCHANGE_NAME,
+                INPUT_QUEUE,
+                INPUT_ROUTING_KEY,
             )
 
-            # The consumer is registered and both dependencies
-            # have initialized successfully.
             update_readiness(True)
 
             while True:
@@ -132,10 +155,12 @@ async def run_consumer(
                         not connection.is_closed
                         and connection.connected.is_set()
                     )
-
                     update_readiness(broker_ready)
 
                 except Exception:
+                    logger.exception(
+                        "Dependency health check failed"
+                    )
                     update_readiness(False)
 
     finally:
@@ -144,7 +169,8 @@ async def run_consumer(
 
 
 if __name__ == "__main__":
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s %(levelname)s %(name)s: %(message)s",
+    )
     asyncio.run(run_consumer())
-
-
-
