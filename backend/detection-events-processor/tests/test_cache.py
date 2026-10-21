@@ -13,6 +13,7 @@ from app.cache import (
 from app.config import INTERSECTION_LIGHTS
 from app.schemas import ProcessedDetectionEvent
 
+
 TEST_INTERSECTION_ID = next(iter(INTERSECTION_LIGHTS))
 TEST_LIGHT_ID = next(iter(INTERSECTION_LIGHTS[TEST_INTERSECTION_ID]))
 
@@ -57,10 +58,11 @@ async def test_new_event_is_cached(redis_client):
         result = await cache_detection_event(redis_client, event)
 
         assert result == "stored"
-
         cached = await redis_client.get(detection_event_key(event))
-        assert cached is not None
-        assert event.model_dump_json() == cached
+        assert cached == event.model_dump_json()
+
+        dedup_key = event_deduplication_key(str(event.event_id))
+        assert await redis_client.exists(dedup_key) == 1
     finally:
         await clear_test_keys(redis_client, event)
 
@@ -101,3 +103,22 @@ async def test_distinct_events_are_cached_independently(redis_client):
     finally:
         await clear_test_keys(redis_client, first)
         await clear_test_keys(redis_client, second)
+
+
+@pytest.mark.asyncio
+async def test_different_detection_types_are_cached_independently(redis_client):
+    emergency = make_event(detection_type="emergency-vehicle")
+    accident = make_event(detection_type="accident")
+
+    await clear_test_keys(redis_client, emergency)
+    await clear_test_keys(redis_client, accident)
+
+    try:
+        assert await cache_detection_event(redis_client, emergency) == "stored"
+        assert await cache_detection_event(redis_client, accident) == "stored"
+
+        assert await redis_client.exists(detection_event_key(emergency)) == 1
+        assert await redis_client.exists(detection_event_key(accident)) == 1
+    finally:
+        await clear_test_keys(redis_client, emergency)
+        await clear_test_keys(redis_client, accident)
