@@ -11,7 +11,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 RABBITMQ_URL = os.getenv("RABBITMQ_URL")
-EXCHANGE_NAME = os.getenv("RABBITMQ_EXCHANGE_NAME", "stls.sensor-data")
+EXCHANGE_NAME = os.getenv("RABBITMQ_EXCHANGE_NAME", "stls.traffic-count")
 EXCHANGE_TYPE = os.getenv("RABBITMQ_EXCHANGE_TYPE", "topic")
 OUTPUT_QUEUE = os.getenv("RABBITMQ_INTEGRATION_OUTPUT_QUEUE")
 
@@ -39,11 +39,11 @@ async def main() -> None:
         )
 
     input_routing_key = (
-        f"stls.sensor-data.input."
+        f"stls.traffic-count.input."
         f"{TEST_INTERSECTION_ID}.{TEST_SENSOR_TYPE}"
     )
     output_routing_key = (
-        f"stls.sensor-data.processed."
+        f"stls.traffic-count.processed."
         f"{TEST_INTERSECTION_ID}.{TEST_SENSOR_TYPE}"
     )
 

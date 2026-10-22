@@ -22,10 +22,10 @@ async def lifespan(app: FastAPI):
 
     consumer_task = asyncio.create_task(
         run_consumer(readiness_callback=set_ready),
-        name="sensor-data-consumer",
+        name="traffic-count-consumer",
     )
 
-    logger.info("Starting Sensor Data Processor")
+    logger.info("Starting Traffic Count Processor")
 
     try:
         yield
@@ -38,11 +38,11 @@ async def lifespan(app: FastAPI):
         except asyncio.CancelledError:
             pass
 
-        logger.info("Sensor Data Processor stopped")
+        logger.info("Traffic Count Processor stopped")
 
 
 app = FastAPI(
-    title="Sensor Data Processor",
+    title="Traffic Count Processor",
     description=(
         "Validates, deduplicates, caches, and publishes "
         "sensor observations."

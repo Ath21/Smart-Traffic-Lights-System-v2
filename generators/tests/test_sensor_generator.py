@@ -1,4 +1,3 @@
-
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
@@ -7,56 +6,60 @@ from pydantic import ValidationError
 
 from sensor_data_generator_common import (
     SENSOR_TYPES,
-    IntersectionConfig,
     SensorDataGenerator,
     SensorObservation,
     build_routing_key,
+    load_traffic_dataset,
 )
-
 
 ATHENS_TZ = ZoneInfo("Europe/Athens")
-
-TEST_INTERSECTIONS = (
-    IntersectionConfig(
-        intersection_id="ekklisia-3",
-        light_ids=("dimitsanas-301S", "edessis-302W", "korytsas-303E"),
-    ),
-    IntersectionConfig(
-        intersection_id="agiou-spyridonos-2",
-        light_ids=("agiou-spyridonos201W", "dimitsanas-202N"),
-    ),
-    IntersectionConfig(
-        intersection_id="anatoliki-pyli-1",
-        light_ids=("mhlou-101N", "agiou-spyridonos-102W"),
-    ),
-)
+DAY_TYPE = "Winter Semester - Regular Teaching Day (Mon-Fri)"
+TIMESTAMP = datetime(2026, 10, 22, 8, 0, tzinfo=ATHENS_TZ)
 
 
-def test_routing_key() -> None:
-    assert (
-        build_routing_key("ekklisia-3", "vehicle-count")
-        == "stls.sensor-data.input.ekklisia-3.vehicle-count"
+@pytest.fixture
+def dataset():
+    return load_traffic_dataset()
+
+
+def make_generator(dataset, seed=42, load_factor=1.0):
+    return SensorDataGenerator(
+        dataset=dataset,
+        interval_seconds=30,
+        seed=seed,
+        load_factor=load_factor,
+        day_type_override=DAY_TYPE,
     )
 
 
-def test_reject_invalid_sensor_type_in_routing_key() -> None:
+def test_routing_key():
+    assert build_routing_key("ekklisia-3", "vehicle-count") == (
+        "stls.sensor-data.input.ekklisia-3.vehicle-count"
+    )
+
+
+def test_invalid_routing_key_is_rejected():
+    with pytest.raises(ValueError):
+        build_routing_key("ekklisia.3", "vehicle-count")
+
     with pytest.raises(ValueError):
         build_routing_key("ekklisia-3", "unknown")
 
 
-def test_generate_expected_observation_count() -> None:
-    generator = SensorDataGenerator(profile="normal", seed=42)
+def test_generate_one_observation_per_light_and_sensor_type(dataset):
+    generator = make_generator(dataset)
+    observations = generator.generate_observations(TIMESTAMP)
 
-    observations = generator.generate_observations(TEST_INTERSECTIONS)
+    expected_lights = sum(
+        len(intersection.light_ids)
+        for intersection in dataset.intersections
+    )
 
-    # Seven configured lights × three sensor types.
-    assert len(observations) == 21
+    assert len(observations) == expected_lights * len(SENSOR_TYPES)
 
 
-def test_every_observation_has_valid_fields() -> None:
-    generator = SensorDataGenerator(profile="normal", seed=42)
-
-    observations = generator.generate_observations(TEST_INTERSECTIONS)
+def test_every_observation_has_valid_fields(dataset):
+    observations = make_generator(dataset).generate_observations(TIMESTAMP)
 
     for observation in observations:
         assert observation.sensor_type in SENSOR_TYPES
@@ -64,52 +67,72 @@ def test_every_observation_has_valid_fields() -> None:
         assert observation.observed_at.tzinfo is not None
         assert observation.schema_version == "1.0"
         assert observation.event_id is not None
+        assert observation.intersection_id
+        assert observation.light_id
 
 
-def test_seed_reproduces_counts() -> None:
-    first = SensorDataGenerator(profile="normal", seed=123)
-    second = SensorDataGenerator(profile="normal", seed=123)
-
-    first_events = first.generate_observations(TEST_INTERSECTIONS)
-    second_events = second.generate_observations(TEST_INTERSECTIONS)
+def test_seed_reproduces_observations(dataset):
+    first = make_generator(dataset, seed=123).generate_observations(TIMESTAMP)
+    second = make_generator(dataset, seed=123).generate_observations(TIMESTAMP)
 
     assert [
-        (event.intersection_id, event.light_id, event.sensor_type, event.count)
-        for event in first_events
+        (e.event_id, e.intersection_id, e.light_id, e.sensor_type, e.count)
+        for e in first
     ] == [
-        (event.intersection_id, event.light_id, event.sensor_type, event.count)
-        for event in second_events
+        (e.event_id, e.intersection_id, e.light_id, e.sensor_type, e.count)
+        for e in second
     ]
 
 
-def test_reject_naive_timestamp() -> None:
-    generator = SensorDataGenerator(profile="normal", seed=42)
+def test_zero_load_factor_produces_zero_counts(dataset):
+    observations = make_generator(
+        dataset, load_factor=0
+    ).generate_observations(TIMESTAMP)
+
+    assert observations
+    assert all(observation.count == 0 for observation in observations)
+
+
+def test_naive_timestamp_is_rejected(dataset):
+    generator = make_generator(dataset)
 
     with pytest.raises(ValueError, match="timezone"):
-        generator.generate_observations(
-            TEST_INTERSECTIONS,
-            observed_at=datetime(2026, 10, 20, 12, 0),
+        generator.generate_observations(datetime(2026, 10, 22, 8, 0))
+
+
+def test_invalid_interval_is_rejected(dataset):
+    with pytest.raises(ValueError, match="interval_seconds"):
+        SensorDataGenerator(dataset=dataset, interval_seconds=0)
+
+
+def test_negative_load_factor_is_rejected(dataset):
+    with pytest.raises(ValueError, match="load_factor"):
+        SensorDataGenerator(
+            dataset=dataset,
+            interval_seconds=30,
+            load_factor=-1,
         )
 
 
-def test_schema_rejects_negative_count() -> None:
+def test_schema_rejects_negative_count():
     with pytest.raises(ValidationError):
         SensorObservation(
+            event_id="00000000-0000-4000-8000-000000000001",
             intersection_id="ekklisia-3",
             light_id="dimitsanas-301S",
             sensor_type="vehicle-count",
             count=-1,
-            observed_at=datetime.now(ATHENS_TZ),
+            observed_at=TIMESTAMP,
         )
 
 
-def test_schema_rejects_unknown_sensor_type() -> None:
+def test_schema_rejects_unknown_sensor_type():
     with pytest.raises(ValidationError):
         SensorObservation(
+            event_id="00000000-0000-4000-8000-000000000001",
             intersection_id="ekklisia-3",
             light_id="dimitsanas-301S",
             sensor_type="unknown",
             count=1,
-            observed_at=datetime.now(ATHENS_TZ),
+            observed_at=TIMESTAMP,
         )
-

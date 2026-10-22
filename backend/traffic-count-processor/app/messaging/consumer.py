@@ -60,7 +60,7 @@ async def handle_message(
             processed.event_id,
         )
         await message.nack(requeue=True)
-        return
+        raise
 
     try:
         await publish_processed(exchange, processed)
@@ -70,7 +70,7 @@ async def handle_message(
             processed.event_id,
         )
         await message.nack(requeue=True)
-        return
+        raise
 
     await message.ack()
 
@@ -136,7 +136,7 @@ async def run_consumer(
             )
 
             logger.info(
-                "Sensor Data Processor started: "
+                "Traffic Count Processor started: "
                 "exchange=%s queue=%s routing_key=%s",
                 EXCHANGE_NAME,
                 INPUT_QUEUE,

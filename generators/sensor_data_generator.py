@@ -1,4 +1,3 @@
-
 from __future__ import annotations
 
 import argparse
@@ -6,6 +5,7 @@ import asyncio
 import logging
 import os
 import signal
+from datetime import datetime
 from time import monotonic
 
 import aio_pika
@@ -15,7 +15,12 @@ from sensor_data_generator_common import (
     EXCHANGE_NAME,
     SensorDataGenerator,
     build_routing_key,
-    load_intersections,
+    load_traffic_dataset,
+)
+from stls_dataset_common import (
+    DAY_TYPE_ALIASES,
+    SimulatedClock,
+    parse_start_time,
 )
 
 logger = logging.getLogger(__name__)
@@ -24,10 +29,10 @@ logger = logging.getLogger(__name__)
 async def publish_observations(
     exchange: aio_pika.abc.AbstractExchange,
     generator: SensorDataGenerator,
-    intersections,
+    observed_at: datetime,
 ) -> int:
     """Generate and publish one batch of sensor observations."""
-    observations = generator.generate_observations(intersections)
+    observations = generator.generate_observations(observed_at)
 
     for observation in observations:
         routing_key = build_routing_key(
@@ -79,13 +84,23 @@ async def run(args: argparse.Namespace) -> None:
     if not exchange_name:
         raise RuntimeError("RABBITMQ_EXCHANGE_NAME must not be empty")
 
-    intersections = load_intersections()
-    if not intersections:
-        raise RuntimeError("No intersections are configured")
+    dataset = load_traffic_dataset(args.dataset)
+    if not dataset.intersections:
+        raise RuntimeError("The dataset defines no intersections")
+
+    clock = SimulatedClock(
+        start=parse_start_time(args.at) if args.at else None,
+        speed=args.speed,
+    )
 
     generator = SensorDataGenerator(
-        profile=args.profile,
+        dataset=dataset,
+        # Each observation covers `interval` real seconds, which is
+        # `interval * speed` seconds of simulated time.
+        interval_seconds=args.interval * args.speed,
         seed=args.seed,
+        load_factor=args.load_factor,
+        day_type_override=args.day_type,
     )
 
     stop_event = asyncio.Event()
@@ -114,13 +129,17 @@ async def run(args: argparse.Namespace) -> None:
 
         logger.info(
             "Sensor workload generator started: exchange=%s "
-            "profile=%s interval=%ss duration=%s seed=%s intersections=%s",
+            "interval=%ss duration=%s seed=%s intersections=%s "
+            "lights=%s load_factor=%s speed=%s day_type_override=%s",
             exchange_name,
-            args.profile,
             args.interval,
             args.duration if args.duration is not None else "unlimited",
             args.seed,
-            len(intersections),
+            len(dataset.intersections),
+            sum(len(i.light_ids) for i in dataset.intersections),
+            args.load_factor,
+            args.speed,
+            args.day_type or "calendar",
         )
 
         while not stop_event.is_set():
@@ -132,17 +151,22 @@ async def run(args: argparse.Namespace) -> None:
             ):
                 break
 
+            observed_at = clock.now()
+
             batch_count = await publish_observations(
                 exchange,
                 generator,
-                intersections,
+                observed_at,
             )
             total_published += batch_count
 
             logger.info(
-                "Sensor batch published: batch_count=%s total_published=%s",
+                "Sensor batch published: batch_count=%s total_published=%s "
+                "simulated_time=%s day_type=%s",
                 batch_count,
                 total_published,
+                observed_at.isoformat(timespec="seconds"),
+                generator.day_type_at(observed_at),
             )
 
             if args.duration is None:
@@ -183,12 +207,18 @@ async def wait_or_stop(
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Generate synthetic STLS sensor observations.",
+        description=(
+            "Generate synthetic STLS sensor observations from the "
+            "traffic-counts dataset."
+        ),
     )
     parser.add_argument(
-        "--profile",
-        choices=("quiet", "normal", "peak", "overload"),
-        default="normal",
+        "--dataset",
+        default=None,
+        help=(
+            "Path to stls_traffic_counts.json (default: "
+            "$STLS_TRAFFIC_COUNTS_PATH, else next to this script)."
+        ),
     )
     parser.add_argument("--interval", type=float, default=30.0)
     parser.add_argument(
@@ -198,6 +228,33 @@ def parse_args() -> argparse.Namespace:
         help="Duration in seconds; omit to run until interrupted.",
     )
     parser.add_argument("--seed", type=int, default=42)
+    parser.add_argument(
+        "--at",
+        default=None,
+        help=(
+            "Simulated start time, ISO 8601 (e.g. 2026-11-03T08:00). "
+            "Naive values are Europe/Athens local time. "
+            "Default: the current time."
+        ),
+    )
+    parser.add_argument(
+        "--speed",
+        type=float,
+        default=1.0,
+        help="Simulated seconds per real second (default: 1.0).",
+    )
+    parser.add_argument(
+        "--day-type",
+        choices=tuple(DAY_TYPE_ALIASES),
+        default=None,
+        help="Force a day type instead of deriving it from the calendar.",
+    )
+    parser.add_argument(
+        "--load-factor",
+        type=float,
+        default=1.0,
+        help="Multiply all dataset rates (e.g. 3.0 for stress tests).",
+    )
 
     args = parser.parse_args()
 
@@ -206,6 +263,21 @@ def parse_args() -> argparse.Namespace:
 
     if args.duration is not None and args.duration <= 0:
         parser.error("--duration must be greater than zero")
+
+    if args.speed <= 0:
+        parser.error("--speed must be greater than zero")
+
+    if args.load_factor < 0:
+        parser.error("--load-factor must not be negative")
+
+    if args.at:
+        try:
+            parse_start_time(args.at)
+        except ValueError:
+            parser.error("--at must be an ISO 8601 date/time")
+
+    if args.day_type:
+        args.day_type = DAY_TYPE_ALIASES[args.day_type]
 
     return args
 

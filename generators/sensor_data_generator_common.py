@@ -1,18 +1,21 @@
-
 from __future__ import annotations
 
 import os
 import random
-from dataclasses import dataclass
 from datetime import datetime
-from uuid import UUID, uuid4
-from zoneinfo import ZoneInfo
+from pathlib import Path
+from uuid import UUID
 
-from dotenv import load_dotenv
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
+from stls_dataset_common import (
+    GREECE_TZ,
+    IntersectionConfig,
+    LoadedDataset,
+    load_dataset,
+    poisson_sample,
+)
 
-GREECE_TZ = ZoneInfo("Europe/Athens")
 
 SENSOR_TYPES = (
     "vehicle-count",
@@ -23,14 +26,23 @@ SENSOR_TYPES = (
 EXCHANGE_NAME = "stls.sensor-data"
 ROUTING_KEY_PREFIX = "stls.sensor-data.input"
 
+DEFAULT_DATASET_PATH = Path(__file__).with_name("stls_traffic_counts.json")
+
+# Dataset field holding the hourly {"min", "max"} range for each sensor type.
+DATASET_FIELDS = {
+    "vehicle-count": "vehicles_per_hour",
+    "pedestrian-count": "pedestrians_per_hour",
+    "bicycle-count": "cyclists_per_hour",
+}
+
 
 class SensorObservation(BaseModel):
-    """Raw synthetic observation compatible with the STLS processor."""
+    """Synthetic observation compatible with the STLS processor."""
 
     model_config = ConfigDict(extra="forbid")
 
     schema_version: str = "1.0"
-    event_id: UUID = Field(default_factory=uuid4)
+    event_id: UUID
     intersection_id: str = Field(min_length=1, max_length=100)
     light_id: str = Field(min_length=1, max_length=100)
     sensor_type: str
@@ -67,64 +79,14 @@ class SensorObservation(BaseModel):
         return self
 
 
-@dataclass(frozen=True)
-class IntersectionConfig:
-    intersection_id: str
-    light_ids: tuple[str, ...]
-
-
-def load_intersections() -> tuple[IntersectionConfig, ...]:
-    """Load the intersection/light mapping from environment variables."""
-    load_dotenv()
-
-    definitions = (
-        ("STLS_INTERSECTION_EKKLISIA", "STLS_LIGHTS_EKKLISIA"),
-        (
-            "STLS_INTERSECTION_AGIOU_SPYRIDONOS",
-            "STLS_LIGHTS_AGIOU_SPYRIDONOS",
-        ),
-        (
-            "STLS_INTERSECTION_ANATOLIKI_PYLI",
-            "STLS_LIGHTS_ANATOLIKI_PYLI",
-        ),
+def load_traffic_dataset(path: str | Path | None = None) -> LoadedDataset:
+    """Load the traffic-counts dataset (path arg > env var > default)."""
+    resolved = (
+        path
+        or os.getenv("STLS_TRAFFIC_COUNTS_PATH", "").strip()
+        or DEFAULT_DATASET_PATH
     )
-
-    intersections: list[IntersectionConfig] = []
-    seen_intersections: set[str] = set()
-
-    for intersection_env, lights_env in definitions:
-        intersection_id = os.getenv(intersection_env, "").strip()
-        lights_value = os.getenv(lights_env, "").strip()
-
-        if not intersection_id:
-            raise RuntimeError(f"{intersection_env} must be configured")
-        if not lights_value:
-            raise RuntimeError(f"{lights_env} must be configured")
-
-        light_ids = tuple(
-            dict.fromkeys(
-                light.strip()
-                for light in lights_value.split(",")
-                if light.strip()
-            )
-        )
-
-        if not light_ids:
-            raise RuntimeError(f"{lights_env} must contain light IDs")
-        if intersection_id in seen_intersections:
-            raise RuntimeError(
-                f"Duplicate intersection ID: {intersection_id}"
-            )
-
-        seen_intersections.add(intersection_id)
-        intersections.append(
-            IntersectionConfig(
-                intersection_id=intersection_id,
-                light_ids=light_ids,
-            )
-        )
-
-    return tuple(intersections)
+    return load_dataset(resolved, "counts_data")
 
 
 def build_routing_key(
@@ -140,44 +102,45 @@ def build_routing_key(
     return f"{ROUTING_KEY_PREFIX}.{intersection_id}.{sensor_type}"
 
 
-@dataclass(frozen=True)
-class TrafficProfile:
-    """Illustrative synthetic mean counts per observation interval."""
-
-    vehicle_mean: float
-    pedestrian_mean: float
-    bicycle_mean: float
-
-
-TRAFFIC_PROFILES = {
-    "quiet": TrafficProfile(2.0, 0.5, 0.3),
-    "normal": TrafficProfile(6.0, 2.0, 1.0),
-    "peak": TrafficProfile(14.0, 5.0, 2.5),
-    "overload": TrafficProfile(25.0, 8.0, 4.0),
-}
-
-
 class SensorDataGenerator:
-    """Create reproducible synthetic observations."""
+    """Create synthetic observations driven by the traffic-counts dataset.
+
+    The dataset gives an hourly [min, max] range per light, day type and
+    hour of day. For each observation a rate is drawn uniformly from that
+    range, converted to the expected count over the observation window,
+    and sampled from a Poisson distribution.
+    """
 
     def __init__(
         self,
-        profile: str = "normal",
+        dataset: LoadedDataset,
+        interval_seconds: float,
         seed: int | None = None,
+        load_factor: float = 1.0,
+        day_type_override: str | None = None,
     ) -> None:
-        try:
-            self.profile = TRAFFIC_PROFILES[profile]
-        except KeyError as exc:
-            raise ValueError(
-                f"Unknown profile '{profile}'. "
-                f"Choose from: {', '.join(TRAFFIC_PROFILES)}"
-            ) from exc
+        if interval_seconds <= 0:
+            raise ValueError("interval_seconds must be greater than zero")
+        if load_factor < 0:
+            raise ValueError("load_factor must not be negative")
 
+        self.dataset = dataset
+        self.interval_seconds = interval_seconds
+        self.load_factor = load_factor
+        self.day_type_override = day_type_override
         self.random = random.Random(seed)
+
+    @property
+    def intersections(self) -> tuple[IntersectionConfig, ...]:
+        return self.dataset.intersections
+
+    def day_type_at(self, timestamp: datetime) -> str:
+        return self.day_type_override or self.dataset.calendar.day_type_for(
+            timestamp.date()
+        )
 
     def generate_observations(
         self,
-        intersections: tuple[IntersectionConfig, ...],
         observed_at: datetime | None = None,
     ) -> list[SensorObservation]:
         """Generate one observation per light and sensor type."""
@@ -186,25 +149,32 @@ class SensorDataGenerator:
         if timestamp.tzinfo is None or timestamp.utcoffset() is None:
             raise ValueError("observed_at must include a timezone")
 
+        local = timestamp.astimezone(GREECE_TZ)
+        day_type = self.day_type_at(local)
+        hour = local.hour
+        window_fraction = self.interval_seconds / 3600.0
+
         observations: list[SensorObservation] = []
 
-        means = {
-            "vehicle-count": self.profile.vehicle_mean,
-            "pedestrian-count": self.profile.pedestrian_mean,
-            "bicycle-count": self.profile.bicycle_mean,
-        }
-
-        for intersection in intersections:
+        for intersection in self.intersections:
             for light_id in intersection.light_ids:
+                record = self.dataset.record(light_id, day_type, hour)
+
                 for sensor_type in SENSOR_TYPES:
-                    count = self.random.poisson(means[sensor_type]) if hasattr(
-                        self.random, "poisson"
-                    ) else _poisson_sample(
-                        self.random, means[sensor_type]
+                    bounds = record[DATASET_FIELDS[sensor_type]]
+                    hourly_rate = self.random.uniform(
+                        bounds["min"], bounds["max"]
                     )
+                    mean = hourly_rate * self.load_factor * window_fraction
+                    count = poisson_sample(self.random, mean)
 
                     observations.append(
                         SensorObservation(
+                            # Seeded, so runs stay reproducible.
+                            event_id=UUID(
+                                int=self.random.getrandbits(128),
+                                version=4,
+                            ),
                             intersection_id=intersection.intersection_id,
                             light_id=light_id,
                             sensor_type=sensor_type,
@@ -214,23 +184,3 @@ class SensorDataGenerator:
                     )
 
         return observations
-
-
-def _poisson_sample(
-    rng: random.Random,
-    mean: float,
-) -> int:
-    """Sample a Poisson count without third-party numerical libraries."""
-    # Knuth's algorithm is suitable for the small means used here.
-    import math
-
-    threshold = math.exp(-mean)
-    product = 1.0
-    count = 0
-
-    while product > threshold:
-        count += 1
-        product *= rng.random()
-
-    return count - 1
-
