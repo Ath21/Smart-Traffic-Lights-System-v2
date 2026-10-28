@@ -21,11 +21,11 @@ return 'stored'
 
 
 def detection_event_key(event: ProcessedDetectionEvent) -> str:
-    return f"stls:detection:event:{event.event_id}"
+    return f"stls:detection:events:{event.event_id}"
 
 
 def event_deduplication_key(event_id: str) -> str:
-    return f"stls:detection:processed-event:{event_id}"
+    return f"stls:detection:processed-events:{event_id}"
 
 
 async def cache_detection_event(

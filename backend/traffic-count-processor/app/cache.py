@@ -48,13 +48,13 @@ def latest_observation_key(
     observation: ProcessedTrafficCount,
     ) -> str:
     return (
-        f"stls:traffic:latest:{observation.intersection_id}:"
+        f"stls:traffic:count:{observation.intersection_id}:"
         f"{observation.traffic_type}"
     )
 
 
 def event_deduplication_key(event_id: str) -> str:
-    return f"stls:traffic:processed-event:{event_id}"
+    return f"stls:traffic:processed-count:{event_id}"
 
 
 async def cache_observation(

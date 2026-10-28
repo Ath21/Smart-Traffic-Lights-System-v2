@@ -27,7 +27,6 @@ def _parse_ids(name: str) -> set[str]:
 
 
 EXCHANGE_NAME = _required_env("RABBITMQ_EXCHANGE_NAME")
-EXCHANGE_TYPE = _required_env("RABBITMQ_EXCHANGE_TYPE")
 
 INPUT_QUEUE = _required_env("RABBITMQ_INPUT_QUEUE")
 INPUT_ROUTING_KEY = _required_env("RABBITMQ_INPUT_ROUTING_KEY")

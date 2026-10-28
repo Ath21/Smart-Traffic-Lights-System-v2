@@ -30,7 +30,6 @@ from app.cache import (
 )
 from app.config import (
     EXCHANGE_NAME,
-    EXCHANGE_TYPE,
     OUTPUT_ROUTING_KEY_TEMPLATE,
     RABBITMQ_URL,
 )
@@ -91,7 +90,7 @@ async def test_publisher_sends_processed_traffic_count_to_rabbitmq():
             channel = await connection.channel(publisher_confirms=True)
             exchange = await channel.declare_exchange(
                 EXCHANGE_NAME,
-                type=EXCHANGE_TYPE,
+                type=aio_pika.ExchangeType.TOPIC,
                 durable=True,
             )
             routing_key = OUTPUT_ROUTING_KEY_TEMPLATE.format(
@@ -126,7 +125,7 @@ async def test_consumer_processes_rabbitmq_input_and_publishes_output():
             channel = await connection.channel(publisher_confirms=True)
             exchange = await channel.declare_exchange(
                 EXCHANGE_NAME,
-                type=EXCHANGE_TYPE,
+                type=aio_pika.ExchangeType.TOPIC,
                 durable=True,
             )
 
