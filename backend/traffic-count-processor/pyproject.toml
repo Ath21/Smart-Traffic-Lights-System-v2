@@ -1,0 +1,23 @@
+[project]
+name = "traffic-count-processor"
+version = "0.1.0"
+requires-python = ">=3.12"
+dependencies = [
+    "aio-pika>=10.1.1",
+    "fastapi>=0.149.0",
+    "pydantic>=2.14.1",
+    "python-dotenv>=1.2.4",
+    "redis>=8.1.0",
+    "uvicorn[standard]>=0.54.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+    "pytest-asyncio>=1.4.0",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
+markers = ["integration: requires running RabbitMQ, Redis, and traffic-count processor"]
