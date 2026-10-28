@@ -5,19 +5,20 @@ import asyncio
 import logging
 import os
 import signal
+from pathlib import Path
 from datetime import datetime
 from time import monotonic
 
 import aio_pika
 from dotenv import load_dotenv
 
-from generators.traffic_count_generator_common import (
+from traffic_count_generator_common import (
     EXCHANGE_NAME,
     SensorDataGenerator,
     build_routing_key,
     load_traffic_dataset,
 )
-from generators.dataset import (
+from stls_dataset import (
     DAY_TYPE_ALIASES,
     SimulatedClock,
     parse_start_time,
@@ -70,7 +71,7 @@ async def publish_observations(
 
 
 async def run(args: argparse.Namespace) -> None:
-    load_dotenv()
+    load_dotenv(Path(__file__).resolve().parent / ".env", override=False)
 
     rabbitmq_url = os.getenv("RABBITMQ_URL", "").strip()
     if not rabbitmq_url:

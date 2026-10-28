@@ -1,0 +1,28 @@
+[project]
+name = "stls-traffic-count-generator"
+version = "0.1.0"
+description = "Synthetic traffic-count workload generator for STLS."
+requires-python = ">=3.12"
+dependencies = [
+    "aio-pika>=9.5.0",
+    "pydantic>=2.10.0",
+    "python-dotenv>=1.0.1",
+    "stls-dataset",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3.0",
+    "pytest-asyncio>=0.25.0",
+]
+
+[tool.uv]
+package = false
+
+[tool.uv.sources]
+stls-dataset = { path = "../shared-dataset", editable = true }
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
+asyncio_mode = "auto"

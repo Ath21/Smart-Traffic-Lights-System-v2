@@ -5,6 +5,7 @@ import asyncio
 import logging
 import os
 import signal
+from pathlib import Path
 from datetime import datetime
 from time import monotonic
 
@@ -18,13 +19,12 @@ from detection_event_generator_common import (
     build_routing_key,
     load_detection_dataset,
 )
-from generators.dataset import (
+from stls_dataset import (
     DAY_TYPE_ALIASES,
     SimulatedClock,
     parse_start_time,
 )
 
-load_dotenv(".env.detection")
 
 logger = logging.getLogger(__name__)
 
@@ -82,7 +82,7 @@ async def wait_or_stop(
 
 
 async def run(args: argparse.Namespace) -> None:
-    load_dotenv()
+    load_dotenv(Path(__file__).resolve().parent / ".env", override=False)
 
     rabbitmq_url = os.getenv("RABBITMQ_URL", "").strip()
     if not rabbitmq_url:

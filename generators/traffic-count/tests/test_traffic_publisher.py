@@ -5,12 +5,12 @@ from zoneinfo import ZoneInfo
 
 import pytest
 
-from generators.traffic_count_generator_common import (
+from traffic_count_generator_common import (
     SENSOR_TYPES,
     SensorDataGenerator,
     load_traffic_dataset,
 )
-from generators.traffic_count_generator import publish_observations
+from traffic_count_generator import publish_observations
 
 ATHENS_TZ = ZoneInfo("Europe/Athens")
 TIMESTAMP = datetime(2026, 10, 22, 8, 0, tzinfo=ATHENS_TZ)

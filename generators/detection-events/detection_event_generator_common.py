@@ -8,7 +8,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
-from generators.dataset import (
+from stls_dataset import (
     GREECE_TZ,
     IntersectionConfig,
     LoadedDataset,
@@ -26,7 +26,7 @@ DETECTION_TYPES = (
 EXCHANGE_NAME = "stls.detection-events"
 ROUTING_KEY_PREFIX = "stls.detection-events.input"
 
-DEFAULT_DATASET_PATH = Path(__file__).with_name("../../dataset/stls_detection_events.json")
+DEFAULT_DATASET_PATH = Path(__import__("stls_dataset").__file__).resolve().parent / "stls_detection_events.json"
 
 BUS_WINDOW_SECONDS = 300.0  # dataset gives bus probability per 5 minutes
 DEFAULT_SIGNAL_CYCLE_SECONDS = 90.0

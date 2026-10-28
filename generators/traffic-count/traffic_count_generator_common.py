@@ -8,7 +8,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
-from stls_dataset_common import (
+from stls_dataset import (
     GREECE_TZ,
     IntersectionConfig,
     LoadedDataset,
@@ -26,7 +26,7 @@ SENSOR_TYPES = (
 EXCHANGE_NAME = "stls.sensor-data"
 ROUTING_KEY_PREFIX = "stls.sensor-data.input"
 
-DEFAULT_DATASET_PATH = Path(__file__).with_name("../../dataset/stls_traffic_counts.json")
+DEFAULT_DATASET_PATH = Path(__import__("stls_dataset").__file__).resolve().parent / "stls_traffic_counts.json"
 
 # Dataset field holding the hourly {"min", "max"} range for each sensor type.
 DATASET_FIELDS = {

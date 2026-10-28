@@ -11,7 +11,7 @@ from detection_event_generator_common import (
     build_routing_key,
     load_detection_dataset,
 )
-from generators.dataset import probability_over_windows
+from stls_dataset import probability_over_windows
 
 ATHENS_TZ = ZoneInfo("Europe/Athens")
 DAY_TYPE = "Winter Semester - Regular Teaching Day (Mon-Fri)"
