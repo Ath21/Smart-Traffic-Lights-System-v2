@@ -4,7 +4,7 @@ from zoneinfo import ZoneInfo
 import pytest
 from pydantic import ValidationError
 
-from sensor_data_generator_common import (
+from generators.traffic_count_generator_common import (
     SENSOR_TYPES,
     SensorDataGenerator,
     SensorObservation,

@@ -6,7 +6,6 @@ _dependencies_ready = False
 
 
 def set_ready(ready: bool) -> None:
-    """Update whether the service is ready to process messages."""
     global _dependencies_ready
     _dependencies_ready = ready
 

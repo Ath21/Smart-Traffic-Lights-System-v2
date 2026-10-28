@@ -41,7 +41,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="STLS Detection Events Processor",
+    title="STLS 2.0 Detection Events Processor",
     description=(
         "Validates, caches, and publishes "
         "traffic detection events."

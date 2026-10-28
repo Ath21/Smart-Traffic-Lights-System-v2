@@ -26,7 +26,7 @@ SENSOR_TYPES = (
 EXCHANGE_NAME = "stls.sensor-data"
 ROUTING_KEY_PREFIX = "stls.sensor-data.input"
 
-DEFAULT_DATASET_PATH = Path(__file__).with_name("stls_traffic_counts.json")
+DEFAULT_DATASET_PATH = Path(__file__).with_name("../../dataset/stls_traffic_counts.json")
 
 # Dataset field holding the hourly {"min", "max"} range for each sensor type.
 DATASET_FIELDS = {

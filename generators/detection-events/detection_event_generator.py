@@ -11,42 +11,45 @@ from time import monotonic
 import aio_pika
 from dotenv import load_dotenv
 
-from sensor_data_generator_common import (
+from detection_event_generator_common import (
+    DEFAULT_SIGNAL_CYCLE_SECONDS,
     EXCHANGE_NAME,
-    SensorDataGenerator,
+    DetectionEventGenerator,
     build_routing_key,
-    load_traffic_dataset,
+    load_detection_dataset,
 )
-from stls_dataset_common import (
+from generators.dataset import (
     DAY_TYPE_ALIASES,
     SimulatedClock,
     parse_start_time,
 )
 
+load_dotenv(".env.detection")
+
 logger = logging.getLogger(__name__)
 
 
-async def publish_observations(
-    exchange: aio_pika.abc.AbstractExchange,
-    generator: SensorDataGenerator,
-    observed_at: datetime,
+async def publish_detection_events(
+    exchange,
+    generator: DetectionEventGenerator,
+    detected_at: datetime,
 ) -> int:
-    """Generate and publish one batch of sensor observations."""
-    observations = generator.generate_observations(observed_at)
+    """Generate and publish one batch of detection events."""
+    events = generator.generate_events(detected_at)
 
-    for observation in observations:
+    for event in events:
         routing_key = build_routing_key(
-            observation.intersection_id,
-            observation.sensor_type,
+            event.intersection_id,
+            event.detection_type,
         )
 
         message = aio_pika.Message(
-            body=observation.model_dump_json().encode("utf-8"),
+            body=event.model_dump_json().encode("utf-8"),
             content_type="application/json",
             delivery_mode=aio_pika.DeliveryMode.PERSISTENT,
-            message_id=str(observation.event_id),
-            type=observation.sensor_type,
-            timestamp=observation.observed_at,
+            message_id=str(event.event_id),
+            type=event.detection_type,
+            timestamp=event.detected_at,
         )
 
         await exchange.publish(
@@ -56,17 +59,26 @@ async def publish_observations(
         )
 
         logger.debug(
-            "Sensor event published: event_id=%s intersection=%s "
-            "light=%s sensor_type=%s count=%s routing_key=%s",
-            observation.event_id,
-            observation.intersection_id,
-            observation.light_id,
-            observation.sensor_type,
-            observation.count,
+            "Detection event published: event_id=%s intersection=%s "
+            "light=%s detection_type=%s routing_key=%s",
+            event.event_id,
+            event.intersection_id,
+            event.light_id,
+            event.detection_type,
             routing_key,
         )
 
-    return len(observations)
+    return len(events)
+
+
+async def wait_or_stop(
+    stop_event: asyncio.Event,
+    seconds: float,
+) -> None:
+    try:
+        await asyncio.wait_for(stop_event.wait(), timeout=seconds)
+    except TimeoutError:
+        pass
 
 
 async def run(args: argparse.Namespace) -> None:
@@ -84,7 +96,7 @@ async def run(args: argparse.Namespace) -> None:
     if not exchange_name:
         raise RuntimeError("RABBITMQ_EXCHANGE_NAME must not be empty")
 
-    dataset = load_traffic_dataset(args.dataset)
+    dataset = load_detection_dataset(args.dataset)
     if not dataset.intersections:
         raise RuntimeError("The dataset defines no intersections")
 
@@ -93,13 +105,14 @@ async def run(args: argparse.Namespace) -> None:
         speed=args.speed,
     )
 
-    generator = SensorDataGenerator(
+    generator = DetectionEventGenerator(
         dataset=dataset,
-        # Each observation covers `interval` real seconds, which is
+        # Each batch covers `interval` real seconds, which is
         # `interval * speed` seconds of simulated time.
         interval_seconds=args.interval * args.speed,
         seed=args.seed,
         load_factor=args.load_factor,
+        cycle_seconds=args.cycle_seconds,
         day_type_override=args.day_type,
     )
 
@@ -117,9 +130,7 @@ async def run(args: argparse.Namespace) -> None:
     started_at = monotonic()
 
     try:
-        channel = await connection.channel(
-            publisher_confirms=True,
-        )
+        channel = await connection.channel(publisher_confirms=True)
 
         exchange = await channel.declare_exchange(
             exchange_name,
@@ -128,9 +139,10 @@ async def run(args: argparse.Namespace) -> None:
         )
 
         logger.info(
-            "Sensor workload generator started: exchange=%s "
+            "Detection workload generator started: exchange=%s "
             "interval=%ss duration=%s seed=%s intersections=%s "
-            "lights=%s load_factor=%s speed=%s day_type_override=%s",
+            "lights=%s load_factor=%s speed=%s cycle_seconds=%s "
+            "day_type_override=%s",
             exchange_name,
             args.interval,
             args.duration if args.duration is not None else "unlimited",
@@ -139,34 +151,33 @@ async def run(args: argparse.Namespace) -> None:
             sum(len(i.light_ids) for i in dataset.intersections),
             args.load_factor,
             args.speed,
+            args.cycle_seconds,
             args.day_type or "calendar",
         )
 
         while not stop_event.is_set():
-            elapsed = monotonic() - started_at
-
             if (
                 args.duration is not None
-                and elapsed >= args.duration
+                and monotonic() - started_at >= args.duration
             ):
                 break
 
-            observed_at = clock.now()
+            detected_at = clock.now()
 
-            batch_count = await publish_observations(
+            batch_count = await publish_detection_events(
                 exchange,
                 generator,
-                observed_at,
+                detected_at,
             )
             total_published += batch_count
 
             logger.info(
-                "Sensor batch published: batch_count=%s total_published=%s "
-                "simulated_time=%s day_type=%s",
+                "Detection batch published: batch_count=%s "
+                "total_published=%s simulated_time=%s day_type=%s",
                 batch_count,
                 total_published,
-                observed_at.isoformat(timespec="seconds"),
-                generator.day_type_at(observed_at),
+                detected_at.isoformat(timespec="seconds"),
+                generator.day_type_at(detected_at),
             )
 
             if args.duration is None:
@@ -175,58 +186,38 @@ async def run(args: argparse.Namespace) -> None:
                 remaining = args.duration - (monotonic() - started_at)
                 if remaining <= 0:
                     break
-
                 await wait_or_stop(
                     stop_event,
                     min(args.interval, remaining),
                 )
 
         logger.info(
-            "Sensor workload generator stopped: total_published=%s "
+            "Detection workload generator stopped: total_published=%s "
             "elapsed_seconds=%.2f",
             total_published,
             monotonic() - started_at,
         )
-
     finally:
         await connection.close()
-
-
-async def wait_or_stop(
-    stop_event: asyncio.Event,
-    seconds: float,
-) -> None:
-    try:
-        await asyncio.wait_for(
-            stop_event.wait(),
-            timeout=seconds,
-        )
-    except TimeoutError:
-        pass
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
-            "Generate synthetic STLS sensor observations from the "
-            "traffic-counts dataset."
-        ),
+            "Generate synthetic STLS detection events from the "
+            "detection-events dataset."
+        )
     )
     parser.add_argument(
         "--dataset",
         default=None,
         help=(
-            "Path to stls_traffic_counts.json (default: "
-            "$STLS_TRAFFIC_COUNTS_PATH, else next to this script)."
+            "Path to stls_detection_events.json (default: "
+            "$STLS_DETECTION_EVENTS_PATH, else next to this script)."
         ),
     )
     parser.add_argument("--interval", type=float, default=30.0)
-    parser.add_argument(
-        "--duration",
-        type=float,
-        default=None,
-        help="Duration in seconds; omit to run until interrupted.",
-    )
+    parser.add_argument("--duration", type=float, default=None)
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument(
         "--at",
@@ -253,22 +244,30 @@ def parse_args() -> argparse.Namespace:
         "--load-factor",
         type=float,
         default=1.0,
-        help="Multiply all dataset rates (e.g. 3.0 for stress tests).",
+        help="Multiply all dataset probabilities (e.g. 5.0 for stress tests).",
+    )
+    parser.add_argument(
+        "--cycle-seconds",
+        type=float,
+        default=DEFAULT_SIGNAL_CYCLE_SECONDS,
+        help=(
+            "Signal cycle length used to convert per-cycle probabilities "
+            f"(default: {DEFAULT_SIGNAL_CYCLE_SECONDS:g})."
+        ),
     )
 
     args = parser.parse_args()
 
     if args.interval <= 0:
         parser.error("--interval must be greater than zero")
-
     if args.duration is not None and args.duration <= 0:
         parser.error("--duration must be greater than zero")
-
     if args.speed <= 0:
         parser.error("--speed must be greater than zero")
-
     if args.load_factor < 0:
         parser.error("--load-factor must not be negative")
+    if args.cycle_seconds <= 0:
+        parser.error("--cycle-seconds must be greater than zero")
 
     if args.at:
         try:
@@ -292,9 +291,9 @@ def main() -> None:
     try:
         asyncio.run(run(parse_args()))
     except KeyboardInterrupt:
-        logger.info("Sensor workload generator interrupted")
+        logger.info("Detection workload generator interrupted")
     except Exception:
-        logger.exception("Sensor workload generator failed")
+        logger.exception("Detection workload generator failed")
         raise SystemExit(1)
 
 
