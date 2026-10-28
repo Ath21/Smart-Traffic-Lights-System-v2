@@ -46,7 +46,7 @@ async def test_publishes_all_observations():
         routing_key = call.kwargs["routing_key"]
 
         assert routing_key == (
-            f"stls.sensor-data.input."
+            f"stls.traffic-count.input."
             f"{payload['intersection_id']}.{payload['sensor_type']}"
         )
         assert payload["light_id"]

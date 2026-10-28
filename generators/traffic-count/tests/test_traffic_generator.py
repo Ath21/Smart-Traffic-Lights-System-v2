@@ -34,7 +34,7 @@ def make_generator(dataset, seed=42, load_factor=1.0):
 
 def test_routing_key():
     assert build_routing_key("ekklisia-3", "vehicle-count") == (
-        "stls.sensor-data.input.ekklisia-3.vehicle-count"
+        "stls.traffic-count.input.ekklisia-3.vehicle-count"
     )
 
 

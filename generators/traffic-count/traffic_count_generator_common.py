@@ -23,8 +23,8 @@ SENSOR_TYPES = (
     "bicycle-count",
 )
 
-EXCHANGE_NAME = "stls.sensor-data"
-ROUTING_KEY_PREFIX = "stls.sensor-data.input"
+EXCHANGE_NAME = "stls.traffic-count"
+ROUTING_KEY_PREFIX = "stls.traffic-count.input"
 
 DEFAULT_DATASET_PATH = Path(__import__("stls_dataset").__file__).resolve().parent / "stls_traffic_counts.json"
 
