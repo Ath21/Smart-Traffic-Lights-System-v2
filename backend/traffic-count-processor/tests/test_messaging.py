@@ -40,7 +40,7 @@ async def test_publisher_uses_expected_routing_key():
     args = exchange.publish.await_args.kwargs
 
     assert args["routing_key"] == (
-        f"stls.sensor-data.processed."
+        f"stls.traffic-count.processed."
         f"{RABBITMQ_TEST_INTERSECTION_ID}.{RABBITMQ_TEST_SENSOR_TYPE}"
     )
     assert args["mandatory"] is True
