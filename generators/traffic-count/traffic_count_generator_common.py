@@ -17,7 +17,7 @@ from stls_dataset import (
 )
 
 
-SENSOR_TYPES = (
+TRAFFIC_TYPES = (
     "vehicle-count",
     "pedestrian-count",
     "bicycle-count",
@@ -28,7 +28,7 @@ ROUTING_KEY_PREFIX = "stls.traffic-count.input"
 
 DEFAULT_DATASET_PATH = Path(__import__("stls_dataset").__file__).resolve().parent / "stls_traffic_counts.json"
 
-# Dataset field holding the hourly {"min", "max"} range for each sensor type.
+# Dataset field holding the hourly {"min", "max"} range for each traffic type.
 DATASET_FIELDS = {
     "vehicle-count": "vehicles_per_hour",
     "pedestrian-count": "pedestrians_per_hour",
@@ -36,8 +36,8 @@ DATASET_FIELDS = {
 }
 
 
-class SensorObservation(BaseModel):
-    """Synthetic observation compatible with the STLS processor."""
+class TrafficCount(BaseModel):
+    """Synthetic traffic count compatible with the STLS processor."""
 
     model_config = ConfigDict(extra="forbid")
 
@@ -45,7 +45,7 @@ class SensorObservation(BaseModel):
     event_id: UUID
     intersection_id: str = Field(min_length=1, max_length=100)
     light_id: str = Field(min_length=1, max_length=100)
-    sensor_type: str
+    traffic_type: str
     count: int = Field(ge=0)
     observed_at: datetime
 
@@ -56,11 +56,11 @@ class SensorObservation(BaseModel):
             raise ValueError("schema_version must be '1.0'")
         return value
 
-    @field_validator("sensor_type")
+    @field_validator("traffic_type")
     @classmethod
-    def validate_sensor_type(cls, value: str) -> str:
-        if value not in SENSOR_TYPES:
-            raise ValueError(f"Unsupported sensor type: {value}")
+    def validate_traffic_type(cls, value: str) -> str:
+        if value not in TRAFFIC_TYPES:
+            raise ValueError(f"Unsupported traffic type: {value}")
         return value
 
     @field_validator("observed_at")
@@ -71,7 +71,7 @@ class SensorObservation(BaseModel):
         return value
 
     @model_validator(mode="after")
-    def validate_identifiers(self) -> SensorObservation:
+    def validate_identifiers(self) -> TrafficCount:
         if not self.intersection_id.strip():
             raise ValueError("intersection_id must not be blank")
         if not self.light_id.strip():
@@ -91,19 +91,19 @@ def load_traffic_dataset(path: str | Path | None = None) -> LoadedDataset:
 
 def build_routing_key(
     intersection_id: str,
-    sensor_type: str,
+    traffic_type: str,
 ) -> str:
     """Build the input routing key for one observation."""
     if not intersection_id or "." in intersection_id:
         raise ValueError("Invalid intersection ID for routing key")
-    if sensor_type not in SENSOR_TYPES:
-        raise ValueError(f"Unsupported sensor type: {sensor_type}")
+    if traffic_type not in TRAFFIC_TYPES:
+        raise ValueError(f"Unsupported traffic type: {traffic_type}")
 
-    return f"{ROUTING_KEY_PREFIX}.{intersection_id}.{sensor_type}"
+    return f"{ROUTING_KEY_PREFIX}.{intersection_id}.{traffic_type}"
 
 
-class SensorDataGenerator:
-    """Create synthetic observations driven by the traffic-counts dataset.
+class TrafficCountGenerator:
+    """Create synthetic traffic count data driven by the traffic-counts dataset.
 
     The dataset gives an hourly [min, max] range per light, day type and
     hour of day. For each observation a rate is drawn uniformly from that
@@ -142,8 +142,8 @@ class SensorDataGenerator:
     def generate_observations(
         self,
         observed_at: datetime | None = None,
-    ) -> list[SensorObservation]:
-        """Generate one observation per light and sensor type."""
+    ) -> list[TrafficCount]:
+        """Generate one observation per light and traffic type."""
         timestamp = observed_at or datetime.now(GREECE_TZ)
 
         if timestamp.tzinfo is None or timestamp.utcoffset() is None:
@@ -154,14 +154,14 @@ class SensorDataGenerator:
         hour = local.hour
         window_fraction = self.interval_seconds / 3600.0
 
-        observations: list[SensorObservation] = []
+        observations: list[TrafficCount] = []
 
         for intersection in self.intersections:
             for light_id in intersection.light_ids:
                 record = self.dataset.record(light_id, day_type, hour)
 
-                for sensor_type in SENSOR_TYPES:
-                    bounds = record[DATASET_FIELDS[sensor_type]]
+                for traffic_type in TRAFFIC_TYPES:
+                    bounds = record[DATASET_FIELDS[traffic_type]]
                     hourly_rate = self.random.uniform(
                         bounds["min"], bounds["max"]
                     )
@@ -169,7 +169,7 @@ class SensorDataGenerator:
                     count = poisson_sample(self.random, mean)
 
                     observations.append(
-                        SensorObservation(
+                        TrafficCount(
                             # Seeded, so runs stay reproducible.
                             event_id=UUID(
                                 int=self.random.getrandbits(128),
@@ -177,7 +177,7 @@ class SensorDataGenerator:
                             ),
                             intersection_id=intersection.intersection_id,
                             light_id=light_id,
-                            sensor_type=sensor_type,
+                            traffic_type=traffic_type,
                             count=count,
                             observed_at=timestamp,
                         )

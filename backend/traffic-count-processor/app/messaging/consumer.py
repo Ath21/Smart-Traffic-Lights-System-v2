@@ -17,8 +17,8 @@ from app.config import (
 )
 from app.messaging.publisher import publish_processed
 from app.schemas import (
-    ProcessedSensorObservation,
-    SensorObservation,
+    ProcessedTrafficCount,
+    TrafficCount,
 )
 
 logger = logging.getLogger(__name__)
@@ -33,7 +33,7 @@ async def handle_message(
 
     try:
         payload = json.loads(message.body)
-        observation = SensorObservation.model_validate(payload)
+        observation = TrafficCount.model_validate(payload)
 
     except (
         json.JSONDecodeError,
@@ -41,14 +41,14 @@ async def handle_message(
         ValidationError,
     ) as exc:
         logger.warning(
-            "Rejecting invalid sensor message: event_id=%s error=%s",
+            "Rejecting invalid traffic count message: event_id=%s error=%s",
             event_id,
             exc,
         )
         await message.reject(requeue=False)
         return
 
-    processed = ProcessedSensorObservation(
+    processed = ProcessedTrafficCount(
         **observation.model_dump(),
     )
 
@@ -75,12 +75,12 @@ async def handle_message(
     await message.ack()
 
     logger.info(
-        "Sensor event processed: event_id=%s intersection=%s "
-        "light=%s sensor_type=%s count=%s",
+        "Traffic count event processed: event_id=%s intersection=%s "
+        "light=%s traffic_type=%s count=%s",
         processed.event_id,
         processed.intersection_id,
         processed.light_id,
-        processed.sensor_type,
+        processed.traffic_type,
         processed.count,
     )
 

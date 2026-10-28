@@ -22,4 +22,5 @@ dev = [
 [tool.pytest.ini_options]
 pythonpath = ["."]
 testpaths = ["tests"]
+markers = ["integration: requires running RabbitMQ, Redis, and detection-events processor"]
 asyncio_mode = "auto"

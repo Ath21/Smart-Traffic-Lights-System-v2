@@ -4,18 +4,18 @@ import logging
 import aio_pika
 
 from app.config import OUTPUT_ROUTING_KEY_TEMPLATE
-from app.schemas import ProcessedSensorObservation
+from app.schemas import ProcessedTrafficCount
 
 logger = logging.getLogger(__name__)
 
 
 async def publish_processed(
     exchange: aio_pika.abc.AbstractExchange,
-    observation: ProcessedSensorObservation,
+    observation: ProcessedTrafficCount,
 ) -> None:
     routing_key = OUTPUT_ROUTING_KEY_TEMPLATE.format(
         intersection=observation.intersection_id,
-        sensor_type=observation.sensor_type,
+        traffic_type=observation.traffic_type,
     )
 
     message = aio_pika.Message(
@@ -23,7 +23,7 @@ async def publish_processed(
         content_type="application/json",
         delivery_mode=aio_pika.DeliveryMode.PERSISTENT,
         message_id=str(observation.event_id),
-        type=observation.sensor_type,
+        type=observation.traffic_type,
     )
 
     try:
@@ -43,12 +43,12 @@ async def publish_processed(
 
     logger.info(
         "Processed event published: event_id=%s "
-        "intersection=%s light=%s sensor_type=%s "
+        "intersection=%s light=%s traffic_type=%s "
         "count=%s routing_key=%s",
         observation.event_id,
         observation.intersection_id,
         observation.light_id,
-        observation.sensor_type,
+        observation.traffic_type,
         observation.count,
         routing_key,
     )

@@ -14,8 +14,8 @@ from dotenv import load_dotenv
 from traffic_count_generator import publish_observations
 from traffic_count_generator_common import (
     EXCHANGE_NAME,
-    SENSOR_TYPES,
-    SensorDataGenerator,
+    TRAFFIC_TYPES,
+    TrafficCountGenerator,
     load_traffic_dataset,
 )
 
@@ -75,7 +75,7 @@ async def test_traffic_count_generator_publishes_to_rabbitmq():
         )
 
         dataset = load_traffic_dataset()
-        generator = SensorDataGenerator(
+        generator = TrafficCountGenerator(
             dataset=dataset,
             interval_seconds=30,
             seed=42,
@@ -88,7 +88,7 @@ async def test_traffic_count_generator_publishes_to_rabbitmq():
         expected_count = sum(
             len(intersection.light_ids)
             for intersection in dataset.intersections
-        ) * len(SENSOR_TYPES)
+        ) * len(TRAFFIC_TYPES)
 
         published_count = await publish_observations(
             exchange,
@@ -120,11 +120,11 @@ async def test_traffic_count_generator_publishes_to_rabbitmq():
                 assert message.routing_key == (
                     "stls.traffic-count.input."
                     f"{payload['intersection_id']}."
-                    f"{payload['sensor_type']}"
+                    f"{payload['traffic_type']}"
                 )
                 assert payload["schema_version"] == "1.0"
                 assert payload["light_id"]
-                assert payload["sensor_type"] in SENSOR_TYPES
+                assert payload["traffic_type"] in TRAFFIC_TYPES
                 assert isinstance(payload["count"], int)
                 assert payload["count"] >= 0
                 assert payload["observed_at"]

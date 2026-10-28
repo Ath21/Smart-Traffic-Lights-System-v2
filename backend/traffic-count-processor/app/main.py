@@ -45,7 +45,7 @@ app = FastAPI(
     title="Traffic Count Processor",
     description=(
         "Validates, deduplicates, caches, and publishes "
-        "sensor observations."
+        "traffic count data."
     ),
     version="1.0",
     lifespan=lifespan,

@@ -14,7 +14,7 @@ from dotenv import load_dotenv
 
 from traffic_count_generator_common import (
     EXCHANGE_NAME,
-    SensorDataGenerator,
+    TrafficCountGenerator,
     build_routing_key,
     load_traffic_dataset,
 )
@@ -29,16 +29,16 @@ logger = logging.getLogger(__name__)
 
 async def publish_observations(
     exchange: aio_pika.abc.AbstractExchange,
-    generator: SensorDataGenerator,
+    generator: TrafficCountGenerator,
     observed_at: datetime,
 ) -> int:
-    """Generate and publish one batch of sensor observations."""
+    """Generate and publish one batch of traffic count data."""
     observations = generator.generate_observations(observed_at)
 
     for observation in observations:
         routing_key = build_routing_key(
             observation.intersection_id,
-            observation.sensor_type,
+            observation.traffic_type,
         )
 
         message = aio_pika.Message(
@@ -46,7 +46,7 @@ async def publish_observations(
             content_type="application/json",
             delivery_mode=aio_pika.DeliveryMode.PERSISTENT,
             message_id=str(observation.event_id),
-            type=observation.sensor_type,
+            type=observation.traffic_type,
             timestamp=observation.observed_at,
         )
 
@@ -57,12 +57,12 @@ async def publish_observations(
         )
 
         logger.debug(
-            "Sensor event published: event_id=%s intersection=%s "
-            "light=%s sensor_type=%s count=%s routing_key=%s",
+            "Traffic count event published: event_id=%s intersection=%s "
+            "light=%s traffic_type=%s count=%s routing_key=%s",
             observation.event_id,
             observation.intersection_id,
             observation.light_id,
-            observation.sensor_type,
+            observation.traffic_type,
             observation.count,
             routing_key,
         )
@@ -94,7 +94,7 @@ async def run(args: argparse.Namespace) -> None:
         speed=args.speed,
     )
 
-    generator = SensorDataGenerator(
+    generator = TrafficCountGenerator(
         dataset=dataset,
         # Each observation covers `interval` real seconds, which is
         # `interval * speed` seconds of simulated time.
@@ -129,7 +129,7 @@ async def run(args: argparse.Namespace) -> None:
         )
 
         logger.info(
-            "Sensor workload generator started: exchange=%s "
+            "Traffic count workload generator started: exchange=%s "
             "interval=%ss duration=%s seed=%s intersections=%s "
             "lights=%s load_factor=%s speed=%s day_type_override=%s",
             exchange_name,
@@ -162,7 +162,7 @@ async def run(args: argparse.Namespace) -> None:
             total_published += batch_count
 
             logger.info(
-                "Sensor batch published: batch_count=%s total_published=%s "
+                "Traffic count batch published: batch_count=%s total_published=%s "
                 "simulated_time=%s day_type=%s",
                 batch_count,
                 total_published,
@@ -183,7 +183,7 @@ async def run(args: argparse.Namespace) -> None:
                 )
 
         logger.info(
-            "Sensor workload generator stopped: total_published=%s "
+            "Traffic count workload generator stopped: total_published=%s "
             "elapsed_seconds=%.2f",
             total_published,
             monotonic() - started_at,
@@ -209,7 +209,7 @@ async def wait_or_stop(
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
-            "Generate synthetic STLS sensor observations from the "
+            "Generate synthetic STLS traffic count from the "
             "traffic-counts dataset."
         ),
     )
@@ -293,9 +293,9 @@ def main() -> None:
     try:
         asyncio.run(run(parse_args()))
     except KeyboardInterrupt:
-        logger.info("Sensor workload generator interrupted")
+        logger.info("Traffic count workload generator interrupted")
     except Exception:
-        logger.exception("Sensor workload generator failed")
+        logger.exception("Traffic count workload generator failed")
         raise SystemExit(1)
 
 

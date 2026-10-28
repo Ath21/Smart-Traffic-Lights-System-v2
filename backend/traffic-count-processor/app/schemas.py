@@ -16,10 +16,10 @@ from app.config import INTERSECTION_LIGHTS
 
 GREECE_TZ = ZoneInfo("Europe/Athens")
 
-SensorType = str
+TrafficType = str
 
 
-class SensorObservation(BaseModel):
+class TrafficCount(BaseModel):
     """Raw traffic observation generated for a specific traffic light."""
 
     model_config = ConfigDict(extra="forbid")
@@ -28,7 +28,7 @@ class SensorObservation(BaseModel):
     event_id: UUID
     intersection_id: str = Field(min_length=1, max_length=100)
     light_id: str = Field(min_length=1, max_length=100)
-    sensor_type: SensorType
+    traffic_type: TrafficType
     count: int = Field(ge=0)
     observed_at: datetime
 
@@ -39,9 +39,9 @@ class SensorObservation(BaseModel):
             raise ValueError("schema_version must be '1.0'")
         return value
 
-    @field_validator("sensor_type")
+    @field_validator("traffic_type")
     @classmethod
-    def validate_sensor_type(cls, value: str) -> str:
+    def validate_traffic_type(cls, value: str) -> str:
         allowed = {
             "vehicle-count",
             "pedestrian-count",
@@ -49,7 +49,7 @@ class SensorObservation(BaseModel):
         }
         if value not in allowed:
             raise ValueError(
-                f"sensor_type must be one of {sorted(allowed)}"
+                f"traffic_type must be one of {sorted(allowed)}"
             )
         return value
 
@@ -78,8 +78,8 @@ class SensorObservation(BaseModel):
         return self
 
 
-class ProcessedSensorObservation(SensorObservation):
-    """Validated sensor observation enriched by the processor."""
+class ProcessedTrafficCount(TrafficCount):
+    """Validated traffic count observation enriched by the processor."""
 
     processed_at: datetime = Field(
         default_factory=lambda: datetime.now(GREECE_TZ)

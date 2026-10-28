@@ -3,11 +3,11 @@ import os
 
 from redis.asyncio import Redis
 from dotenv import load_dotenv
-from app.schemas import ProcessedSensorObservation
+from app.schemas import ProcessedTrafficCount
 
 
-SENSOR_CACHE_TTL_SECONDS = int(
-        os.getenv("SENSOR_CACHE_TTL_SECONDS")
+TRAFFIC_CACHE_TTL_SECONDS = int(
+    os.getenv("TRAFFIC_CACHE_TTL_SECONDS")
 )
 EVENT_DEDUP_TTL_SECONDS = int(
     os.getenv("EVENT_DEDUP_TTL_SECONDS")
@@ -45,21 +45,21 @@ return 'updated'
 
 
 def latest_observation_key(
-    observation: ProcessedSensorObservation,
+    observation: ProcessedTrafficCount,
     ) -> str:
     return (
-        f"stls:sensor:latest:{observation.intersection_id}:"
-        f"{observation.sensor_type}"
+        f"stls:traffic:latest:{observation.intersection_id}:"
+        f"{observation.traffic_type}"
     )
 
 
 def event_deduplication_key(event_id: str) -> str:
-    return f"stls:sensor:processed-event:{event_id}"
+    return f"stls:traffic:processed-event:{event_id}"
 
 
 async def cache_observation(
     client: Redis,
-    observation: ProcessedSensorObservation,
+    observation: ProcessedTrafficCount,
 ) -> str:
     """Cache an observation and return updated, stale, or duplicate."""
 
@@ -73,7 +73,7 @@ async def cache_observation(
         timestamp_ms,
         observation.model_dump_json(),
         EVENT_DEDUP_TTL_SECONDS,
-        SENSOR_CACHE_TTL_SECONDS,
+        TRAFFIC_CACHE_TTL_SECONDS,
     )
 
     return result.decode() if isinstance(result, bytes) else result
