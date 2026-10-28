@@ -1,4 +1,4 @@
-# STLS v2 — Development Cheatsheet
+# STLS v2 - Development Cheatsheet
 
 ## Phase 1: Development on One VM with Docker
 
